@@ -11,7 +11,7 @@ import logging
 from encoding_utils import *
 from feature_spaces import _FEATURE_CONFIG, get_feature_space
 from ridge_utils.ridge import bootstrap_ridge
-from config import  REPO_DIR, EM_DATA_DIR
+from config import REPO_DIR, EM_DATA_DIR
 
 
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
 	fs = " ".join(_FEATURE_CONFIG.keys())
 	assert feature in _FEATURE_CONFIG.keys(), "Available feature spaces:" + fs
-	assert np.amax(sessions) <= 5 and np.amin(sessions) >=1, "1 <= session <= 5"
+	assert np.amax(sessions) <= 6 and np.amin(sessions) >=1, "1 <= session <= 5"
 
 	sessions = list(map(str, sessions))
 	with open(join(EM_DATA_DIR, "sess_to_story.json"), "r") as f:

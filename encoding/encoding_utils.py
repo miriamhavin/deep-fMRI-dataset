@@ -5,7 +5,7 @@ import os
 import h5py
 from multiprocessing.pool import ThreadPool
 from os.path import join, dirname
-
+import nibabel as nib
 from ridge_utils.npp import zscore, mcorr
 from ridge_utils.utils import make_delayed
 from config import DATA_DIR
@@ -39,10 +39,10 @@ def get_response(stories, subject):
 	base = os.path.join(main_path, subject_dir)
 	resp = []
 	for story in stories:
-		resp_path = os.path.join(base, "%s.hf5" % story)
-		hf = h5py.File(resp_path, "r")
-		resp.extend(hf["data"][:])
-		hf.close()
+		resp_path = os.path.join(base, f"{story}.nii.gz")
+		img = nib.load(resp_path)
+		data = img.get_fdata()
+		resp.extend(data)
 	return np.array(resp)
 
 def get_permuted_corrs(true, pred, blocklen):

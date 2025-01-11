@@ -3,3 +3,4 @@ pathlib
 h5py
 tables
 numpy
+nibabel
