@@ -89,16 +89,24 @@ def make_semantic_model(ds: DataSequence, lsasms: list, sizes: list):
     """
     newdata = []
     num_lsasms = len(lsasms)
-    for w in ds.data:
-        v = []
-        for i in range(num_lsasms):
-            lsasm = lsasms[i]
-            size = sizes[i]
-            try:
-                v = np.concatenate((v, lsasm[str.encode(w.lower())]))
-            except KeyError as e:
-                v = np.concatenate((v, np.zeros((size)))) #lsasm.data.shape[0],))
-        newdata.append(v)
+    word_iterator = iter(ds.data)
+    try:
+        while True:
+            w = next(word_iterator)
+            v = []
+
+            for i in range(num_lsasms):
+                lsasm = lsasms[i]
+                size = sizes[i]
+                try:
+                    v = np.concatenate((v, lsasm[str.encode(w.lower())]))
+                except KeyError as e:
+                    v = np.concatenate((v, np.zeros((size))))
+
+            newdata.append(v)
+    except StopIteration:
+        # Iterator is exhausted, all words processed
+        pass
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
 
 def make_character_model(dss):

@@ -13,7 +13,6 @@ from ridge_utils.ridge import bootstrap_ridge
 from config import REPO_DIR, EM_DATA_DIR
 
 
-
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--subject", type=str, required=True)

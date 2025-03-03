@@ -4,7 +4,6 @@ from os.path import join, dirname
 from ridge_utils.textgrid import TextGrid
 
 
-
 def load_textgrids(stories, data_dir: str):
     """ TODO (shailee): Add description."""
     base = join(data_dir, "TextGrids")
@@ -13,6 +12,7 @@ def load_textgrids(stories, data_dir: str):
         grid_path = os.path.join(base, "%s.TextGrid"%story)
         grids[story] = TextGrid(open(grid_path).read())
     return grids
+
 
 class TRFile(object):
     def __init__(self, trfilename, expectedtr=2.0045):
@@ -26,7 +26,6 @@ class TRFile(object):
         
         if trfilename is not None:
             self.load_from_file(trfilename)
-        
 
     def load_from_file(self, trfilename):
         """Loads TR data from report with given [trfilename].

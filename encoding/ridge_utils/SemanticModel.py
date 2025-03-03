@@ -5,6 +5,7 @@ import numpy as np
 import logging
 logger = logging.getLogger("SemanticModel")
 
+
 class SemanticModel(object):
     """This class defines a semantic vector-space model based on HAL or LSA with some
     prescribed preprocessing pipeline.
