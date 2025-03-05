@@ -39,16 +39,24 @@ def get_week_lecture(text):
 
 
 def get_response(stories, subject):
-	"""Get the subject"s fMRI response for stories."""
-	dir = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
-	resp = []
+	"""Get the subject's fMRI response for stories, skipping files that do not exist."""
+	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
+	responses = []
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
-		resp_path = os.path.join(dir, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+
+		# Check if the file exists before attempting to load
+		if not os.path.exists(resp_path):
+			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num")
+			continue  # Skip to the next iteration if the file does not exist
+
 		img = nib.load(resp_path)
 		data = img.get_fdata()
-		resp.extend(data)
-	return np.array(resp)
+		responses.extend(data)
+
+	return np.array(responses)
+
 
 def get_permuted_corrs(true, pred, blocklen):
 	nblocks = int(true.shape[0] / blocklen)
