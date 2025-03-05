@@ -117,16 +117,20 @@ class SemanticModel(object):
     def load(cls, filename):
         """Loads a semantic model from the given filename.
         """
-        logger.debug("Loading file: %s"%filename)
-        shf = tables.open_file(filename)
+        logger.debug("Loading file: %s" % filename)
 
-        newsm = cls(None, None)
-        newsm.data = shf.get_node("/embeddings").read()
-        newsm.vocab = shf.get_node("/words").read()
-        shf.close()
+        # Use h5py instead of tables to match how the file was created
+        with h5py.File(filename, 'r') as f:
+            newsm = cls(None, None)
+            newsm.data = f['embeddings'][:]
+
+            # Handle UTF-8 encoded variable-length strings
+            if 'words' in f:
+                newsm.vocab = np.array([w.decode('utf-8') for w in f['words'][:]])
+
         logger.debug("Done loading file..")
         return newsm
-    
+
     def copy(self):
         """Returns a copy of this model.
         """
