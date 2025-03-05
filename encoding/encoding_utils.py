@@ -40,11 +40,11 @@ def get_week_lecture(text):
 
 def get_response(stories, subject):
 	"""Get the subject"s fMRI response for stories."""
-	subject_dir = join(DATA_DIR, "FMRI_data/s%s" % subject)
+	subject_dir = join(DATA_DIR, f"FMRI_data/s{subject}")
 	resp = []
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
-		resp_path = os.path.join(subject_dir, f"/wk{week_num}/s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii")
+		resp_path = os.path.join(subject_dir, f"wk{week_num}/s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii")
 		img = nib.load(resp_path)
 		data = img.get_fdata()
 		resp.extend(data)
