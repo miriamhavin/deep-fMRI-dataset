@@ -11,7 +11,6 @@ def load_textgrids(stories, data_dir: str):
     for story in stories:
         grid_path = os.path.join(base, "%s.TextGrid"%story)
         grids[story] = TextGrid(open(grid_path).read())
-        print(grids[story])
     return grids
 
 

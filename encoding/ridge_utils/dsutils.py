@@ -11,7 +11,7 @@ def make_word_ds(grids, trfiles, bad_words=DEFAULT_BAD_WORDS):
     ds = dict()
     stories = list(set(trfiles.keys()) & set(grids.keys()))
     for st in stories:
-        grtranscript = grids[st].tiers[1].make_simple_transcript()
+        grtranscript = grids[st].tiers[0].make_simple_transcript()
         ## Filter out bad words
         goodtranscript = [x for x in grtranscript
                           if x[2].lower().strip("{}").strip() not in bad_words]
