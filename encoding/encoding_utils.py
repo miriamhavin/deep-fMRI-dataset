@@ -44,7 +44,7 @@ def get_response(stories, subject):
 	resp = []
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
-		resp_path = os.path.join(dir, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii")
+		resp_path = os.path.join(dir, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
 		img = nib.load(resp_path)
 		data = img.get_fdata()
 		resp.extend(data)
