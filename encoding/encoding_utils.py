@@ -39,24 +39,51 @@ def get_week_lecture(text):
 
 
 def get_response(stories, subject):
-	"""Get the subject's fMRI response for stories, skipping files that do not exist."""
+	"""Get the subject's fMRI response for stories, padding data to ensure consistent dimensions."""
 	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	responses = []
+	max_shape = None
+
+	# First pass to determine maximum dimensions
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
 		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
 
-		# Check if the file exists before attempting to load
 		if not os.path.exists(resp_path):
 			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
-			continue  # Skip to the next iteration if the file does not exist
+			continue
 
 		img = nib.load(resp_path)
 		data = img.get_fdata()
-		responses.extend(data)
 
-	return np.array(responses)
+		# Update maximum dimensions
+		if max_shape is None:
+			max_shape = data.shape
+		else:
+			max_shape = tuple(max(a, b) for a, b in zip(max_shape, data.shape))
 
+		responses.append((story, data))
+
+	if not responses:
+		raise ValueError("No valid response files found")
+
+	# Second pass to pad all data to maximum dimensions
+	padded_responses = []
+	for story, data in responses:
+		if data.shape != max_shape:
+			# Create a padded array with zeros
+			padded_data = np.zeros(max_shape)
+
+			# Copy data from original array to padded array
+			slices = tuple(slice(0, min(s1, s2)) for s1, s2 in zip(data.shape, max_shape))
+			padded_data[slices] = data[slices]
+
+			print(f"Padded data for {story} from shape {data.shape} to {max_shape}")
+			padded_responses.append(padded_data)
+		else:
+			padded_responses.append(data)
+
+	return np.array(padded_responses)
 
 def get_permuted_corrs(true, pred, blocklen):
 	nblocks = int(true.shape[0] / blocklen)
