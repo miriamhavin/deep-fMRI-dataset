@@ -9,6 +9,7 @@ import nibabel as nib
 from ridge_utils.npp import zscore, mcorr
 from ridge_utils.utils import make_delayed
 from config import DATA_DIR
+import re
 
 def apply_zscore_and_hrf(stories, downsampled_feat, trim, ndelays):
 	"""Get (z-scored and delayed) stimulus for train and test stories.
@@ -32,14 +33,18 @@ def apply_zscore_and_hrf(stories, downsampled_feat, trim, ndelays):
 	delstim = make_delayed(stim, delays)
 	return delstim
 
+def get_week_lecture(text):
+    matches = re.findall(r'\d+', text)
+    return matches[0], matches[1] if len(matches) > 1 else None
+
+
 def get_response(stories, subject):
 	"""Get the subject"s fMRI response for stories."""
-	main_path = pathlib.Path(__file__).parent.parent.resolve()
-	subject_dir = join(DATA_DIR, "ds003020/derivative/preprocessed_data/%s" % subject)
-	base = os.path.join(main_path, subject_dir)
+	subject_dir = join(DATA_DIR, "FMRI_data/s%s" % subject)
 	resp = []
 	for story in stories:
-		resp_path = os.path.join(base, f"{story}.nii.gz")
+		week_num, lecture_num = get_week_lecture(story)
+		resp_path = os.path.join(subject_dir, f"/wk{week_num}/s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii")
 		img = nib.load(resp_path)
 		data = img.get_fdata()
 		resp.extend(data)

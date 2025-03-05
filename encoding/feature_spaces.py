@@ -163,6 +163,14 @@ def get_eng1000_vectors(allstories):
 		vectors[story] = sm.data
 	return downsample_word_vectors(allstories, vectors, wordseqs)
 
+def get_contextual_vectors(allstories):
+	wordseqs = get_story_wordseqs(allstories)
+	embeddings = {}
+	for session in allstories:
+		session_embedding = SemanticModel.load(join(EM_DATA_DIR, f"embeddings/embeddings_{session}.hf5"))
+		sm = make_semantic_model(wordseqs[session], [session_embedding], [4096])
+		embeddings[session] = sm.data
+	return downsample_word_vectors(allstories, embeddings, wordseqs)
 ############################################
 ########## Feature Space Creation ##########
 ############################################
@@ -172,6 +180,7 @@ _FEATURE_CONFIG = {
 	"phonemerate": get_phonemerate_vectors,
 	"wordrate": get_wordrate_vectors,
 	"eng1000": get_eng1000_vectors,
+	"contextual": get_contextual_vectors,
 }
 
 def get_feature_space(feature, *args):

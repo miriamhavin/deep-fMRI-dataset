@@ -1,1 +1,5 @@
-{"1": [["wk1_vid1", "wk1_vid2", "wk1_vid3", "wk1_vid4", "wk1_vid5"], "wk6_recap1"], "2": [["wk2_vid1", "wk2_vid2", "wk2_vid3"], "wk6_recap2"], "3": [["wk3_vid1", "wk3_vid2", "wk3_vid3", "wk3_vid4"], "wk6_recap3"], "4": [["wk4_vid1", "wk4_vid2", "wk4_vid3", "wk4_vid4"], "wk6_recap4"], "5": [["wk5_vid1", "wk5_vid2", "wk5_vid3", "wk5_vid4", "wk5_vid5"], "wk6_recap5"]}
+{"1": [["week_1_lecture_1", "week_1_lecture_2", "week_1_lecture_3", "week_1_lecture_4", "week_1_lecture_5"], "wk6_recap1"],
+  "2": [["week_2_lecture_1", "week_2_lecture_2", "week_2_lecture_3"], "wk6_recap2"],
+  "3": [["week_3_lecture_1", "week_3_lecture_2", "week_3_lecture_3", "week_3_lecture_4"], "wk6_recap3"],
+  "4": [["week_4_lecture_1", "week_4_lecture_2", "week_4_lecture_3", "week_4_lecture_4"], "wk6_recap4"],
+  "5": [["week_5_lecture_1", "week_5_lecture_2", "week_5_lecture_3", "week_5_lecture_4", "week_5_lecture_5"], "wk6_recap5"]}

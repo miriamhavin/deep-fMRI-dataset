@@ -226,8 +226,9 @@ class TextGrid(object):
         elif self.text_type == "OldooTextFile":
             m = OLDOOTEXTFILE
             header = "\".*\"[\r\n]+\".*\""
-
         file_info = m.findall(self.read_file)[0]
+        if not file_info:
+            raise ValueError("No tiers found in the TextGrid file.")
         self.xmin = float(file_info[0])
         self.xmax = float(file_info[1])
         self.t_time = self.xmax - self.xmin
