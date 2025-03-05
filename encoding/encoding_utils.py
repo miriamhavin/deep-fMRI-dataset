@@ -53,8 +53,8 @@ def get_response(stories, subject):
 
 		img = nib.load(resp_path)
 		data = img.get_fdata()
-		flat_data = flatten_data(data)
-		responses.extend(flat_data)
+		print(data.shape)
+		responses.extend(data)
 
 	return np.array(responses)
 
