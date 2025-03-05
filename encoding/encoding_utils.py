@@ -48,7 +48,7 @@ def get_response(stories, subject):
 
 		# Check if the file exists before attempting to load
 		if not os.path.exists(resp_path):
-			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num")
+			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
 			continue  # Skip to the next iteration if the file does not exist
 
 		img = nib.load(resp_path)
