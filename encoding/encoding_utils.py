@@ -39,51 +39,54 @@ def get_week_lecture(text):
 
 
 def get_response(stories, subject):
-	"""Get the subject's fMRI response for stories, padding data to ensure consistent dimensions."""
+	"""Get the subject's fMRI response for stories, skipping files that do not exist."""
 	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	responses = []
-	max_shape = None
-
-	# First pass to determine maximum dimensions
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
 		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
 
+		# Check if the file exists before attempting to load
 		if not os.path.exists(resp_path):
 			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
-			continue
+			continue  # Skip to the next iteration if the file does not exist
 
 		img = nib.load(resp_path)
 		data = img.get_fdata()
+		flat_data = flatten_data(data)
+		responses.extend(flat_data)
 
-		# Update maximum dimensions
-		if max_shape is None:
-			max_shape = data.shape
-		else:
-			max_shape = tuple(max(a, b) for a, b in zip(max_shape, data.shape))
+	return np.array(responses)
 
-		responses.append((story, data))
 
-	if not responses:
-		raise ValueError("No valid response files found")
+def flatten_data(data):
+	"""
+    Reshape 4D fMRI data to 2D (time points × voxels) format for each session separately.
 
-	# Second pass to pad all data to maximum dimensions
-	padded_responses = []
-	for story, data in responses:
-		if data.shape != max_shape:
-			# Create a padded array with zeros
-			padded_data = np.zeros(max_shape)
+    Parameters:
+    -----------
+    data : list of numpy.ndarray
+        List of 4D fMRI data arrays, each with shape (x, y, z, time)
 
-			# Copy data from original array to padded array
-			slices = tuple(slice(0, min(s1, s2)) for s1, s2 in zip(data.shape, max_shape))
-			padded_data[slices] = data[slices]
+    Returns:
+    --------
+    list of numpy.ndarray
+        List of 2D arrays, each with shape (time_points, voxels)
+    """
+	reshaped_sessions = []
 
-			print(f"Padded data for {story} from shape {data.shape} to {max_shape}")
-			padded_responses.append(padded_data)
-		else:
-			padded_responses.append(data)
+	for session_data in data:
+		# Transpose to make time the first dimension
+		# Assuming data is (x, y, z, time)
+		session_data = np.transpose(session_data, (3, 0, 1, 2))
 
-	return np.array(padded_responses)
+		# Reshape to (time, x*y*z)
+		n_timepoints = session_data.shape[0]
+		session_data_2d = session_data.reshape(n_timepoints, -1)
+
+		reshaped_sessions.append(session_data_2d)
+
+	return reshaped_sessions
 
 def get_permuted_corrs(true, pred, blocklen):
 	nblocks = int(true.shape[0] / blocklen)
