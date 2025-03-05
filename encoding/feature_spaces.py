@@ -13,6 +13,7 @@ from config import REPO_DIR, EM_DATA_DIR, DATA_DIR
 
 def get_story_wordseqs(stories):
 	grids = load_textgrids(stories, DATA_DIR)
+	print(grids)
 	with open(join(DATA_DIR, "respdict.json"), "r") as f:
 		respdict = json.load(f)
 	trfiles = load_simulated_trfiles(respdict)
