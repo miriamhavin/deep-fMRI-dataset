@@ -121,8 +121,8 @@ class SemanticModel(object):
         shf = tables.open_file(filename)
 
         newsm = cls(None, None)
-        newsm.data = shf.get_node("/data").read()
-        newsm.vocab = shf.get_node("/vocab").read()
+        newsm.data = shf.get_node("/embeddings").read()
+        newsm.vocab = shf.get_node("/words").read()
         shf.close()
         logger.debug("Done loading file..")
         return newsm
