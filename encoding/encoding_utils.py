@@ -53,8 +53,8 @@ def get_response(stories, subject):
 
 		img = nib.load(resp_path)
 		data = img.get_fdata()
-		print(data.shape)
-		responses.extend(data)
+		flat_data = flatten_data(data)
+		responses.extend(flat_data)
 
 	return np.array(responses)
 
@@ -73,20 +73,10 @@ def flatten_data(data):
     list of numpy.ndarray
         List of 2D arrays, each with shape (time_points, voxels)
     """
-	reshaped_sessions = []
-
-	for session_data in data:
-		# Transpose to make time the first dimension
-		# Assuming data is (x, y, z, time)
-		session_data = np.transpose(session_data, (3, 0, 1, 2))
-
-		# Reshape to (time, x*y*z)
-		n_timepoints = session_data.shape[0]
-		session_data_2d = session_data.reshape(n_timepoints, -1)
-
-		reshaped_sessions.append(session_data_2d)
-
-	return reshaped_sessions
+	session_data = np.transpose(data, (3, 0, 1, 2))
+	n_timepoints = session_data.shape[0]
+	session_data_2d = session_data.reshape(n_timepoints, -1)
+	return session_data_2d
 
 def get_permuted_corrs(true, pred, blocklen):
 	nblocks = int(true.shape[0] / blocklen)
