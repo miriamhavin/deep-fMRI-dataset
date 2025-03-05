@@ -1,7 +1,7 @@
 import tables
 import pickle
 import numpy as np
-
+import h5py
 import logging
 logger = logging.getLogger("SemanticModel")
 
