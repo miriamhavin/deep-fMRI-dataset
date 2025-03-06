@@ -90,7 +90,8 @@ def make_semantic_model(ds: DataSequence, semantic_model, size):
         An instance of SemanticModel containing semantic vectors and vocabulary.
     """
     newdata = []
-
+    # Print to check the dimensions explicitly
+    print("Expected vector size (ndim):", semantic_model.ndim)
     # Iterate over each word in the DataSequence
     for word in ds.data:
         word = word.lower()  # Ensure case consistency
