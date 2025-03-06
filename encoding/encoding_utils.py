@@ -59,9 +59,6 @@ def get_response(stories, subject):
 		week_num, lecture_num = get_week_lecture(story)
 		print(week_num, lecture_num)
 		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
-		if not os.path.exists(resp_path):
-			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
-			continue  # Skip to the next iteration if the file does not exist
 		img = nib.load(resp_path)
 		data = img.get_fdata()
 		flat_data = flatten_data(data)
