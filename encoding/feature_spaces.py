@@ -166,6 +166,7 @@ def get_eng1000_vectors(allstories):
 def get_contextual_vectors(subject, allstories):
 	wordseqs = get_story_wordseqs(allstories)
 	embeddings = {}
+	subject_sessions = []
 	for session in allstories:
 		dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 		week_num, lecture_num = get_week_lecture(session)
@@ -173,10 +174,11 @@ def get_contextual_vectors(subject, allstories):
 		if not os.path.exists(resp_path):
 			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
 			continue
+		subject_sessions.append(session)
 		session_embedding = SemanticModel.load(join(EM_DATA_DIR, f"embeddings/embeddings_{session}.h5"))
 		sm = make_semantic_model(wordseqs[session], [session_embedding], [4096])
 		embeddings[session] = sm.data
-	return downsample_word_vectors(allstories, embeddings, wordseqs)
+	return downsample_word_vectors(subject_sessions, embeddings, wordseqs)
 ############################################
 ########## Feature Space Creation ##########
 ############################################
