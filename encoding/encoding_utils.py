@@ -27,8 +27,17 @@ def apply_zscore_and_hrf(stories, downsampled_feat, trim, ndelays):
 	Returns:
 		delstim: <float32>[TRs, features * ndelays]
 	"""
-	stim = [zscore(downsampled_feat[s][5+trim:-trim]) for s in stories]
-	stim = np.vstack(stim)
+	print("Processing stories:", stories)
+	processed_stories = []
+	for s in stories:
+		data = downsampled_feat[s][5 + trim:-trim]
+		print(f"Story {s} before zscore - Shape: {data.shape}, Min/Max: {data.min()}/{data.max()}")
+		zscored = zscore(data)
+		print(f"Story {s} after zscore - Shape: {zscored.shape}, Min/Max: {zscored.min()}/{zscored.max()}")
+		processed_stories.append(zscored)
+
+	stim = np.vstack(processed_stories)
+	print("Combined stim - Shape:", stim.shape, "Min/Max:", stim.min(), stim.max())
 	delays = range(1, ndelays+1)
 	delstim = make_delayed(stim, delays)
 	return delstim
