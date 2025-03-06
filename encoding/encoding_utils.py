@@ -27,7 +27,7 @@ def apply_zscore_and_hrf(stories, downsampled_feat, trim, ndelays):
 	Returns:
 		delstim: <float32>[TRs, features * ndelays]
 	"""
-	stim = [zscore(downsampled_feat[s][5+trim:-trim]) for s in stories]
+	stim = [zscore(downsampled_feat[s]) for s in stories]
 	stim = np.vstack(stim)
 	delays = range(1, ndelays+1)
 	delstim = make_delayed(stim, delays)
