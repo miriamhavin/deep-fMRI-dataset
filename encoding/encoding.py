@@ -72,6 +72,8 @@ if __name__ == "__main__":
 	print("zRresp: ", zRresp.shape)
 	zPresp = get_response(test_stories, subject)
 	print("zPresp: ", zPresp.shape)
+	zRresp_trimmed = zRresp[:delRstim.shape[0], :]
+	zPresp_trimmed = zPresp[:delPstim.shape[0], :]
 
 	# Ridge
 	alphas = np.logspace(1, 3, 10)
@@ -81,7 +83,7 @@ if __name__ == "__main__":
 		nboots, chunklen, nchunks, single_alpha, use_corr))
 
 	wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
-		delRstim, zRresp, delPstim, zPresp, alphas, nboots, chunklen, 
+		delRstim, zRresp_trimmed, delPstim, zPresp_trimmed, alphas, nboots, chunklen,
 		nchunks, singcutoff=singcutoff, single_alpha=single_alpha, 
 		use_corr=use_corr)
 
