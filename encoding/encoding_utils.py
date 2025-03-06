@@ -37,9 +37,8 @@ def get_week_lecture(text):
     matches = re.findall(r'\d+', text)
     return matches[0], matches[1] if len(matches) > 1 else None
 
-def cut_stories(stories, tstory, subject):
+def cut_stories(stories, subject):
 	cstories = []
-	ctstory = []
 	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
@@ -49,15 +48,7 @@ def cut_stories(stories, tstory, subject):
 			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
 			continue  # Skip to the next iteration if the file does not exist
 		cstories.append(story)
-	for story in tstory:
-		week_num, lecture_num = get_week_lecture(story)
-		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
-		# Check if the file exists before attempting to load
-		if not os.path.exists(resp_path):
-			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
-			continue  # Skip to the next iteration if the file does not exist
-		ctstory.append(story)
-	return cstories, ctstory
+	return cstories
 
 
 def get_response(stories, subject):
