@@ -31,7 +31,7 @@ def apply_zscore_and_hrf(stories, downsampled_feat, trim, ndelays):
 	stim = np.vstack(stim)
 	delays = range(1, ndelays+1)
 	delstim = make_delayed(stim, delays)
-	return delstim
+	return stim
 
 def get_week_lecture(text):
     matches = re.findall(r'\d+', text)
