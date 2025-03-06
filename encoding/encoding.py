@@ -47,7 +47,7 @@ if __name__ == "__main__":
 		ctstory = cut_stories([tstory], subject)[0] if cut_stories([tstory], subject) and \
 													   cut_stories([tstory], subject)[0] is not None else None
 		train_stories.extend(cstories)
-		if tstory and tstory not in test_stories:
+		if tstory is not None and tstory not in test_stories:
 			test_stories.append(ctstory)
 	assert len(set(train_stories) & set(test_stories)) == 0, "Train - Test overlap!"
 	allstories = list(set(train_stories) | set(test_stories))
