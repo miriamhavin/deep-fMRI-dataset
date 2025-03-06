@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import json
 from os.path import join, dirname
-
+from encoding_utils import get_week_lecture
 from ridge_utils.interpdata import lanczosinterp2D
 from ridge_utils.SemanticModel import SemanticModel
 from ridge_utils.dsutils import make_semantic_model, make_word_ds, make_phoneme_ds
@@ -167,6 +167,12 @@ def get_contextual_vectors(allstories):
 	wordseqs = get_story_wordseqs(allstories)
 	embeddings = {}
 	for session in allstories:
+		dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
+		week_num, lecture_num = get_week_lecture(story)
+		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+		if not os.path.exists(resp_path):
+			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
+			continue
 		session_embedding = SemanticModel.load(join(EM_DATA_DIR, f"embeddings/embeddings_{session}.h5"))
 		sm = make_semantic_model(wordseqs[session], [session_embedding], [4096])
 		embeddings[session] = sm.data
