@@ -43,10 +43,10 @@ if __name__ == "__main__":
 	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	for sess in sessions:
 		stories, tstory = sess_to_story[sess][0], sess_to_story[sess][1]
-		cstories, ctstory = cut_stories(stories, tstory, subject)
+		cstories = cut_stories(stories, subject)
 		train_stories.extend(cstories)
 		if tstory not in test_stories:
-			test_stories.append(ctstory)
+			test_stories.append(tstory)
 	assert len(set(train_stories) & set(test_stories)) == 0, "Train - Test overlap!"
 	allstories = list(set(train_stories) | set(test_stories))
 
