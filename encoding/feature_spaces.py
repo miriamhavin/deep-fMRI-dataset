@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import json
 from os.path import join, dirname
-from ridge_utils.DataSequence import DataSequence
+
 from ridge_utils.interpdata import lanczosinterp2D
 from ridge_utils.SemanticModel import SemanticModel
 from ridge_utils.dsutils import make_semantic_model, make_word_ds, make_phoneme_ds, create_semantic_sequence
@@ -168,9 +168,7 @@ def get_contextual_vectors(allstories):
 	embeddings = {}
 	for session in allstories:
 		session_embedding = SemanticModel.load(join(EM_DATA_DIR, f"embeddings/embeddings_{session}.h5"))
-		#sm = create_semantic_sequence(wordseqs[session], session_embedding)
-		sm = DataSequence(session_embedding, wordseqs[session].split_inds, wordseqs[session].data_times,
-						  wordseqs[session].tr_times)
+		sm = create_semantic_sequence(wordseqs[session], [session_embedding], [4096])
 		embeddings[session] = sm.data
 	return downsample_word_vectors(allstories, embeddings, wordseqs)
 ############################################

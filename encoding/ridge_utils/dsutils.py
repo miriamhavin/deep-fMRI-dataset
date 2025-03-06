@@ -78,54 +78,38 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     newdata = np.vstack([olddata==ph for ph in phonemeset]).T
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
-def make_semantic_model(ds: DataSequence, lsasms: list, sizes: list):
+def make_semantic_model(ds: DataSequence, lsasm, size):
     """
-    ds
-        datasequence to operate on
-    lsasms
-        semantic models to use
-    sizes
-        sizes of resulting vectors from each semantic model
+    Parameters:
+    ds : DataSequence
+        DataSequence to operate on.
+    lsasm : np.ndarray
+        A single semantic model array where vectors are ordered corresponding to ds.data.
+    size : int
+        Size of resulting vectors from the semantic model.
+
+    Returns a new DataSequence with concatenated vectors from the semantic model aligned with ds.data.
     """
     newdata = []
-    num_lsasms = len(lsasms)
-    word_iterator = iter(ds.data)
-    try:
-        while True:
-            w = next(word_iterator)
-            v = []
+    word_index = 0  # Start at the first word
 
-            for i in range(num_lsasms):
-                lsasm = lsasms[i]
-                size = sizes[i]
-                try:
-                    v = np.concatenate((v, lsasm[str.encode(w.lower())]))
-                except KeyError as e:
-                    v = np.concatenate((v, np.zeros((size))))
+    # Iterate over each word in the data sequence
+    for w in ds.data:
+        # Assuming the vectors in lsasm are aligned with the order of words in ds.data
+        if word_index < len(lsasm):
+            # Directly use the vector from lsasm corresponding to the word index
+            v = lsasm[word_index]
+        else:
+            # If for some reason there are more words than vectors, pad with zeros
+            v = np.zeros((size,))
 
-            newdata.append(v)
-    except StopIteration:
-        # Iterator is exhausted, all words processed
-        pass
+        newdata.append(v)
+        word_index += 1
+
+    # Return a new DataSequence with the new data array
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def create_semantic_sequence(ds: DataSequence, models: list):
-    """
-    Create a DataSequence using pre-ordered vectors that match the words in ds
-
-    Parameters:
-    vectors : np.ndarray
-        Semantic vectors already ordered to match words in ds
-    ds : DataSequence
-        Original datasequence with metadata to preserve
-
-    Returns:
-    DataSequence
-        New DataSequence with semantic vectors and preserved metadata
-    """
-    # Just create a new DataSequence with the vectors and original metadata
-    return DataSequence(models[0], ds.split_inds, ds.data_times, ds.tr_times)
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
     """
