@@ -50,6 +50,9 @@ def get_response(stories, subject):
 		if not os.path.exists(resp_path):
 			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
 			continue  # Skip to the next iteration if the file does not exist
+		if week_num == 6:
+			print(f"Warning: Skipping week 6 for subject {subject}")
+			continue
 
 		img = nib.load(resp_path)
 		data = img.get_fdata()
