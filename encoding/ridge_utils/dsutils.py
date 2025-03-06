@@ -78,35 +78,32 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     newdata = np.vstack([olddata==ph for ph in phonemeset]).T
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
-def make_semantic_model(ds: DataSequence, lsasm, size):
+def make_semantic_model(ds: DataSequence, semantic_model: SemanticModel):
     """
+    Generates a new DataSequence with concatenated vectors from a single SemanticModel,
+    aligned with the words in the DataSequence ds.
+
     Parameters:
     ds : DataSequence
         DataSequence to operate on.
-    lsasm : np.ndarray
-        A single semantic model array where vectors are ordered corresponding to ds.data.
-    size : int
-        Size of resulting vectors from the semantic model.
-
-    Returns a new DataSequence with concatenated vectors from the semantic model aligned with ds.data.
+    semantic_model : SemanticModel
+        An instance of SemanticModel containing semantic vectors and vocabulary.
     """
     newdata = []
-    word_index = 0  # Start at the first word
 
-    # Iterate over each word in the data sequence
-    for w in ds.data:
-        # Assuming the vectors in lsasm are aligned with the order of words in ds.data
-        if word_index < len(lsasm):
-            # Directly use the vector from lsasm corresponding to the word index
-            v = lsasm[word_index]
+    # Iterate over each word in the DataSequence
+    for word in ds.data:
+        word = word.lower()  # Ensure case consistency
+        if word in semantic_model.vindex:
+            # Fetch the vector for the word
+            vector = semantic_model[word]
         else:
-            # If for some reason there are more words than vectors, pad with zeros
-            v = np.zeros((size,))
+            # If the word is not in the vocabulary, use a zero vector
+            vector = np.zeros(semantic_model.ndim)
 
-        newdata.append(v)
-        word_index += 1
+        newdata.append(vector)
 
-    # Return a new DataSequence with the new data array
+    # Create and return a new DataSequence
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
 
 
