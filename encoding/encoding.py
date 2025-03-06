@@ -47,7 +47,7 @@ if __name__ == "__main__":
 		ctstory = cut_stories([tstory], subject)
 		train_stories.extend(cstories)
 		if tstory not in test_stories:
-			test_stories.append(ctstory[0])
+			test_stories.append(ctstory)
 	assert len(set(train_stories) & set(test_stories)) == 0, "Train - Test overlap!"
 	allstories = list(set(train_stories) | set(test_stories))
 	save_location = join(REPO_DIR, "results", feature, subject)
