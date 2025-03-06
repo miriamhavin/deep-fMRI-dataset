@@ -42,17 +42,11 @@ if __name__ == "__main__":
 	train_stories, test_stories = [], []
 	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	for sess in sessions:
-		print(sess)
-		week_num, lecture_num = get_week_lecture(sess)
-		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
-		# Check if the file exists before attempting to load
-		if not os.path.exists(resp_path):
-			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
-			continue  # Skip to the next iteration if the file does not exist
 		stories, tstory = sess_to_story[sess][0], sess_to_story[sess][1]
-		train_stories.extend(stories)
+		cstories, ctstory = cut_stories(stories, tstory, subject)
+		train_stories.extend(cstories)
 		if tstory not in test_stories:
-			test_stories.append(tstory)
+			test_stories.append(ctstory)
 	assert len(set(train_stories) & set(test_stories)) == 0, "Train - Test overlap!"
 	allstories = list(set(train_stories) | set(test_stories))
 

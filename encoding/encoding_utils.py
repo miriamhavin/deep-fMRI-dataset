@@ -37,6 +37,28 @@ def get_week_lecture(text):
     matches = re.findall(r'\d+', text)
     return matches[0], matches[1] if len(matches) > 1 else None
 
+def cut_stories(stories, tstory, subject):
+	cstories = []
+	ctstory = []
+	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
+	for story in stories:
+		week_num, lecture_num = get_week_lecture(story)
+		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+		# Check if the file exists before attempting to load
+		if not os.path.exists(resp_path):
+			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
+			continue  # Skip to the next iteration if the file does not exist
+		cstories.append(story)
+	for story in tstory:
+		week_num, lecture_num = get_week_lecture(story)
+		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+		# Check if the file exists before attempting to load
+		if not os.path.exists(resp_path):
+			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
+			continue  # Skip to the next iteration if the file does not exist
+		ctstory.append(story)
+	return cstories, ctstory
+
 
 def get_response(stories, subject):
 	"""Get the subject's fMRI response for stories, skipping files that do not exist."""
@@ -45,15 +67,6 @@ def get_response(stories, subject):
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
 		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
-
-		# Check if the file exists before attempting to load
-		if not os.path.exists(resp_path):
-			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
-			continue  # Skip to the next iteration if the file does not exist
-		if week_num == '6':
-			print(f"Warning: Skipping week 6 for subject {subject}")
-			continue
-
 		img = nib.load(resp_path)
 		data = img.get_fdata()
 		flat_data = flatten_data(data)
