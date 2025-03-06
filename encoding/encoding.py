@@ -74,6 +74,14 @@ if __name__ == "__main__":
 	print("zPresp: ", zPresp.shape)
 	zRresp_trimmed = zRresp[:delRstim.shape[0], :]
 	zPresp_trimmed = zPresp[:delPstim.shape[0], :]
+	file_path = "/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/em_data/embeddings/embeddings_week_1_lecture_4.h5"
+	with h5py.File(file_path, 'r') as f:
+		print(f"Keys in file: {list(f.keys())}")
+		for key in f.keys():
+			data = f[key][:]
+			print(f"Data shape: {data.shape}")
+			print(f"Data min/max: {data.min()}/{data.max()}")
+			print(f"Non-zero count: {np.count_nonzero(data)}/{data.size}")
 
 	# Ridge
 	alphas = np.logspace(1, 3, 10)
@@ -83,7 +91,7 @@ if __name__ == "__main__":
 		nboots, chunklen, nchunks, single_alpha, use_corr))
 
 	wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
-		delRstim, zRresp_trimmed, delPstim, zPresp_trimmed, alphas, nboots, chunklen,
+		delRstim, zRresp_trimmed, delPstim, zPresp, alphas, nboots, chunklen,
 		nchunks, singcutoff=singcutoff, single_alpha=single_alpha, 
 		use_corr=use_corr)
 
