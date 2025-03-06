@@ -59,7 +59,7 @@ if __name__ == "__main__":
 	print("Saving encoding model & results to:", save_location)
 	os.makedirs(save_location, exist_ok=True)
 
-	downsampled_feat = get_feature_space(feature, subject, allstories)
+	downsampled_feat = get_feature_space(feature, allstories)
 	print("Stimulus & Response parameters:")
 	print("trim: %d, ndelays: %d" % (trim, ndelays))
 
