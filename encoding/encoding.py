@@ -74,7 +74,11 @@ if __name__ == "__main__":
 	print("zPresp: ", zPresp.shape)
 	zRresp_trimmed = zRresp[:delRstim.shape[0], :]
 	zPresp_trimmed = zPresp[:delPstim.shape[0], :]
-
+	print("delRstim shape:", delRstim.shape)
+	print("delRstim min/max:", delRstim.min(), delRstim.max())
+	print("delRstim mean/std:", delRstim.mean(), delRstim.std())
+	print("Any NaNs:", np.isnan(delRstim).any())
+	print("Any infs:", np.isinf(delRstim).any())
 	# Ridge
 	alphas = np.logspace(1, 3, 10)
 
