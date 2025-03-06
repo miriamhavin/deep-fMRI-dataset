@@ -163,12 +163,12 @@ def get_eng1000_vectors(allstories):
 		vectors[story] = sm.data
 	return downsample_word_vectors(allstories, vectors, wordseqs)
 
-def get_contextual_vectors(allstories):
+def get_contextual_vectors(subject, allstories):
 	wordseqs = get_story_wordseqs(allstories)
 	embeddings = {}
 	for session in allstories:
 		dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
-		week_num, lecture_num = get_week_lecture(story)
+		week_num, lecture_num = get_week_lecture(session)
 		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
 		if not os.path.exists(resp_path):
 			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
