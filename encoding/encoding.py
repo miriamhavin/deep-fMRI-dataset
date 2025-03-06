@@ -44,7 +44,7 @@ if __name__ == "__main__":
 	for sess in sessions:
 		stories, tstory = sess_to_story[sess][0], sess_to_story[sess][1]
 		cstories = cut_stories(stories, subject)
-		ctstory = cut_stories([tstory], subject)
+		ctstory = cut_stories(tstory, subject)
 		train_stories.extend(cstories)
 		if tstory not in test_stories:
 			test_stories.append(ctstory)
