@@ -78,7 +78,7 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     newdata = np.vstack([olddata==ph for ph in phonemeset]).T
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
-def make_semantic_model(ds: DataSequence, semantic_model: SemanticModel):
+def make_semantic_model(ds: DataSequence, semantic_model: SemanticModel, size):
     """
     Generates a new DataSequence with concatenated vectors from a single SemanticModel,
     aligned with the words in the DataSequence ds.
