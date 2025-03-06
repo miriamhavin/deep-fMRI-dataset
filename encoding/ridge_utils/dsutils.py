@@ -110,7 +110,7 @@ def make_semantic_model(ds: DataSequence, lsasms: list, sizes: list):
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def create_semantic_sequence(vectors: np.ndarray, ds: DataSequence):
+def create_semantic_sequence(ds: DataSequence, vectors: np.ndarray):
     """
     Create a DataSequence using pre-ordered vectors that match the words in ds
 
