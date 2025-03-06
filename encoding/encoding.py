@@ -11,7 +11,7 @@ from encoding_utils import *
 from feature_spaces import _FEATURE_CONFIG, get_feature_space
 from ridge_utils.ridge import bootstrap_ridge
 from config import REPO_DIR, EM_DATA_DIR
-
+from encoding_utils import get_week_lecture
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -40,7 +40,14 @@ if __name__ == "__main__":
 	with open(join(EM_DATA_DIR, "sess_to_story.json"), "r") as f:
 		sess_to_story = json.load(f) 
 	train_stories, test_stories = [], []
+	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	for sess in sessions:
+		week_num, lecture_num = get_week_lecture(sess)
+		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+		# Check if the file exists before attempting to load
+		if not os.path.exists(resp_path):
+			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
+			continue  # Skip to the next iteration if the file does not exist
 		stories, tstory = sess_to_story[sess][0], sess_to_story[sess][1]
 		train_stories.extend(stories)
 		if tstory not in test_stories:
