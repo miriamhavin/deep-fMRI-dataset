@@ -42,6 +42,7 @@ if __name__ == "__main__":
 	train_stories, test_stories = [], []
 	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	for sess in sessions:
+		print(sess)
 		week_num, lecture_num = get_week_lecture(sess)
 		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
 		# Check if the file exists before attempting to load
