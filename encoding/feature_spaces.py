@@ -163,15 +163,38 @@ def get_eng1000_vectors(allstories):
 		vectors[story] = sm.data
 	return downsample_word_vectors(allstories, vectors, wordseqs)
 
+
 def get_contextual_vectors(allstories):
+	print(f"Getting contextual vectors for {len(allstories)} stories")
 	wordseqs = get_story_wordseqs(allstories)
+	print(f"Word sequences obtained. Example length for first story: {len(wordseqs[allstories[0]])}")
+
 	embeddings = {}
 	for session in allstories:
-		session_embedding = SemanticModel.load(join(EM_DATA_DIR, f"embeddings/embeddings_{session}.h5"))
+		print(f"Processing session: {session}")
+		embedding_path = join(EM_DATA_DIR, f"embeddings/embeddings_{session}.h5")
+		print(f"  Embedding path: {embedding_path}")
+		print(f"  File exists: {os.path.exists(embedding_path)}")
+		print(f"  File size: {os.path.getsize(embedding_path) if os.path.exists(embedding_path) else 'N/A'}")
+
+		session_embedding = SemanticModel.load(embedding_path)
+		print(
+			f"  Loaded embedding shape: {session_embedding.data.shape if hasattr(session_embedding, 'data') else 'No data attribute'}")
+
 		sm = make_semantic_model(wordseqs[session], [session_embedding], [4096])
+		print(f"  Semantic model created. Data shape: {sm.data.shape}")
+		print(f"  Data stats - Min: {sm.data.min()}, Max: {sm.data.max()}, Mean: {sm.data.mean()}")
+
 		embeddings[session] = sm.data
-	return downsample_word_vectors(allstories, embeddings, wordseqs)
-############################################
+
+	print("Starting word vector downsampling...")
+	downsampled = downsample_word_vectors(allstories, embeddings, wordseqs)
+	print(f"Downsampling complete. Number of sessions: {len(downsampled)}")
+	for session in allstories:
+		print(
+			f"  Session {session} - Shape: {downsampled[session].shape}, Min: {downsampled[session].min()}, Max: {downsampled[session].max()}")
+
+	return downsampled############################################
 ########## Feature Space Creation ##########
 ############################################
 
