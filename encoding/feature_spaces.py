@@ -6,7 +6,7 @@ from os.path import join, dirname
 
 from ridge_utils.interpdata import lanczosinterp2D
 from ridge_utils.SemanticModel import SemanticModel
-from ridge_utils.dsutils import make_semantic_model, make_word_ds, make_phoneme_ds
+from ridge_utils.dsutils import make_semantic_model, make_word_ds, make_phoneme_ds, create_semantic_sequence
 from ridge_utils.stimulus_utils import load_textgrids, load_simulated_trfiles
 
 from config import REPO_DIR, EM_DATA_DIR, DATA_DIR
@@ -168,7 +168,7 @@ def get_contextual_vectors(allstories):
 	embeddings = {}
 	for session in allstories:
 		session_embedding = SemanticModel.load(join(EM_DATA_DIR, f"embeddings/embeddings_{session}.h5"))
-		sm = make_semantic_model(wordseqs[session], [session_embedding], [4096])
+		sm = create_semantic_sequence(wordseqs[session], [session_embedding], [4096])
 		embeddings[session] = sm.data
 	return downsample_word_vectors(allstories, embeddings, wordseqs)
 ############################################

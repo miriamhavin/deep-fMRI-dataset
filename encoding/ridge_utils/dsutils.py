@@ -109,6 +109,23 @@ def make_semantic_model(ds: DataSequence, lsasms: list, sizes: list):
         pass
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
 
+
+def create_semantic_sequence(vectors: np.ndarray, ds: DataSequence):
+    """
+    Create a DataSequence using pre-ordered vectors that match the words in ds
+
+    Parameters:
+    vectors : np.ndarray
+        Semantic vectors already ordered to match words in ds
+    ds : DataSequence
+        Original datasequence with metadata to preserve
+
+    Returns:
+    DataSequence
+        New DataSequence with semantic vectors and preserved metadata
+    """
+    # Just create a new DataSequence with the vectors and original metadata
+    return DataSequence(vectors, ds.split_inds, ds.data_times, ds.tr_times)
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
     """
