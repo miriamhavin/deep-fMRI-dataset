@@ -57,6 +57,7 @@ def get_response(stories, subject):
 	responses = []
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
+		print(week_num, lecture_num)
 		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
 		if not os.path.exists(resp_path):
 			print(f"Warning: File not found subject {subject} week {week_num} lecture {lecture_num}")
