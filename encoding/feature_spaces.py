@@ -3,10 +3,9 @@ import sys
 import numpy as np
 import json
 from os.path import join, dirname
-
 from ridge_utils.interpdata import lanczosinterp2D
 from ridge_utils.SemanticModel import SemanticModel
-from ridge_utils.dsutils import make_semantic_model, make_word_ds, make_phoneme_ds, create_semantic_sequence
+from ridge_utils.dsutils import make_semantic_model, make_word_ds, make_phoneme_ds
 from ridge_utils.stimulus_utils import load_textgrids, load_simulated_trfiles
 
 from config import REPO_DIR, EM_DATA_DIR, DATA_DIR
