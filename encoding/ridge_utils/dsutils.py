@@ -78,7 +78,8 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     newdata = np.vstack([olddata==ph for ph in phonemeset]).T
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
-def make_semantic_model(ds: DataSequence, semantic_model, size):
+
+def make_semantic_model(ds: DataSequence, semantic_model, size=4096):
     """
     Generates a new DataSequence with concatenated vectors from a single SemanticModel,
     aligned with the words in the DataSequence ds.
@@ -88,19 +89,28 @@ def make_semantic_model(ds: DataSequence, semantic_model, size):
         DataSequence to operate on.
     semantic_model : SemanticModel
         An instance of SemanticModel containing semantic vectors and vocabulary.
+    size : int
+        The fixed size of vectors to be used (default is 4096).
     """
     newdata = []
-    # Print to check the dimensions explicitly
-    print("Expected vector size (ndim):", semantic_model.ndim)
+
     # Iterate over each word in the DataSequence
     for word in ds.data:
         word = word.lower()  # Ensure case consistency
         if word in semantic_model.vindex:
             # Fetch the vector for the word
             vector = semantic_model[word]
+            # Ensure the vector is of the expected size
+            if vector.size != size:
+                print(f"Warning: Vector size for '{word}' is {vector.size}; expected {size}. Adjusting size.")
+                # If not, adjust by either truncating or padding with zeros
+                if vector.size > size:
+                    vector = vector[:size]  # Truncate if larger
+                else:
+                    vector = np.pad(vector, (0, size - vector.size), 'constant')  # Pad with zeros if smaller
         else:
-            # If the word is not in the vocabulary, use a zero vector
-            vector = np.zeros(semantic_model.ndim)
+            # If the word is not in the vocabulary, use a zero vector of the specified size
+            vector = np.zeros(size)
 
         newdata.append(vector)
 
