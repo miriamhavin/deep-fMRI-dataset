@@ -84,14 +84,18 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
     ds
         datasequence to operate on
     lsasms
-        list of semantic models to use - assumed to be ordered to match words in ds
+        list of semantic models to use
     sizes
         list of sizes of resulting vectors from each semantic model
     """
     newdata = []
     num_lsasms = len(lsasms)
 
-    # If vectors are already ordered correctly, simply extract them
+    # Diagnostic print
+    for j in range(num_lsasms):
+        lsasm = lsasms[j]
+        print(f"Semantic model data shape: {lsasm.data.shape}")
+
     for i in range(len(ds.data)):
         v = []
         for j in range(num_lsasms):
@@ -99,19 +103,23 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
             size = sizes[j]
 
             try:
-                # Extract vector at position i directly from the semantic model data
-                # Note: Using transposed data since feature vectors should be columns
-                if i < lsasm.data.shape[1]:
-                    vector = lsasm.data[:, i]
-                    v = np.concatenate((v, vector))
-                else:
-                    v = np.concatenate((v, np.zeros(size)))
+                # Check if we're accessing the right dimension
+                vector = lsasm.data[:, i] if i < lsasm.data.shape[1] else np.zeros(lsasm.data.shape[0])
+
+                # Print the first vector to check its size
+                if i == 0 and j == 0:
+                    print(f"Vector shape: {vector.shape}")
+
+                v = np.concatenate((v, vector))
             except (IndexError, ValueError) as e:
+                print(f"Error at position {i}: {str(e)}")
                 v = np.concatenate((v, np.zeros(size)))
 
         newdata.append(v)
 
-    return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
+    result = DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
+    print(f"Final newdata shape: {np.array(newdata).shape}")
+    return result
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
