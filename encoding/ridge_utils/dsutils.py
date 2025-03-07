@@ -91,11 +91,6 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
     newdata = []
     num_lsasms = len(lsasms)
 
-    # Diagnostic print
-    for j in range(num_lsasms):
-        lsasm = lsasms[j]
-        print(f"Semantic model data shape: {lsasm.data.shape}")
-
     for i in range(len(ds.data)):
         v = []
         for j in range(num_lsasms):
@@ -103,23 +98,15 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
             size = sizes[j]
 
             try:
-                # Check if we're accessing the right dimension
-                vector = lsasm.data[:, i] if i < lsasm.data.shape[1] else np.zeros(lsasm.data.shape[0])
-
-                # Print the first vector to check its size
-                if i == 0 and j == 0:
-                    print(f"Vector shape: {vector.shape}")
-
+                # Access rows instead of columns since data is (N, 4096)
+                vector = lsasm.data[i] if i < lsasm.data.shape[0] else np.zeros(lsasm.data.shape[1])
                 v = np.concatenate((v, vector))
             except (IndexError, ValueError) as e:
-                print(f"Error at position {i}: {str(e)}")
                 v = np.concatenate((v, np.zeros(size)))
 
         newdata.append(v)
 
-    result = DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
-    print(f"Final newdata shape: {np.array(newdata).shape}")
-    return result
+    return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
