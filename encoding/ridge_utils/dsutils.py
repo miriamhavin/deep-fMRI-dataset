@@ -84,59 +84,29 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
     ds
         datasequence to operate on
     lsasms
-        list of semantic models to use
+        list of semantic models to use - assumed to be ordered to match words in ds
     sizes
         list of sizes of resulting vectors from each semantic model
     """
     newdata = []
     num_lsasms = len(lsasms)
 
-    # Print some debug info
-    for i in range(num_lsasms):
-        lsasm = lsasms[i]
-        print(f"Model {i} has data shape: {lsasm.data.shape}")
-        print(f"Model {i} has {len(lsasm.vocab)} words in vocabulary")
-        print(f"First 5 words in vocab: {lsasm.vocab[:5]}")
-
-        # Check a few sample words to see if they're in the vocabulary
-        sample_words = ds.data[:5]  # First 5 words from the dataset
-        for word in sample_words:
-            encoded_word = str.encode(word.lower())
-            if encoded_word in lsasm.vindex:
-                print(f"Word '{word}' is in vocabulary at index {lsasm.vindex[encoded_word]}")
-            else:
-                print(f"Word '{word}' is NOT in vocabulary")
-
-    # Now try to get vectors
-    for w in ds.data:
+    # If vectors are already ordered correctly, simply extract them
+    for i in range(len(ds.data)):
         v = []
-        for i in range(num_lsasms):
-            lsasm = lsasms[i]
-            size = sizes[i]
+        for j in range(num_lsasms):
+            lsasm = lsasms[j]
+            size = sizes[j]
 
             try:
-                # Try multiple encoding formats
-                word_to_lookup = w.lower()
-                encoded_word = str.encode(word_to_lookup)
-
-                # First try direct lookup
-                if encoded_word in lsasm.vindex:
-                    word_idx = lsasm.vindex[encoded_word]
-                    vector = lsasm.data[:, word_idx]
+                # Extract vector at position i directly from the semantic model data
+                # Note: Using transposed data since feature vectors should be columns
+                if i < lsasm.data.shape[1]:
+                    vector = lsasm.data[:, i]
                     v = np.concatenate((v, vector))
                 else:
-                    # Try np.str_ format
-                    np_str_word = np.str_(word_to_lookup)
-                    if np_str_word in lsasm.vindex:
-                        word_idx = lsasm.vindex[np_str_word]
-                        vector = lsasm.data[:, word_idx]
-                        v = np.concatenate((v, vector))
-                    else:
-                        # Word not found, use zeros
-                        v = np.concatenate((v, np.zeros(size)))
-            except (KeyError, IndexError, ValueError) as e:
-                # Log the error
-                print(f"Error accessing word '{w}': {str(e)}")
+                    v = np.concatenate((v, np.zeros(size)))
+            except (IndexError, ValueError) as e:
                 v = np.concatenate((v, np.zeros(size)))
 
         newdata.append(v)
