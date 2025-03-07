@@ -79,37 +79,41 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def make_semantic_model(ds: DataSequence, lsasm, size):
+def make_semantic_model(ds: DataSequence, lsasms, sizes):
     """
     ds
         datasequence to operate on
-    lsasm
-        single semantic model to use
-    size
-        size of resulting vectors from semantic model
+    lsasms
+        list of semantic models to use
+    sizes
+        list of sizes of resulting vectors from each semantic model
     """
     newdata = []
-
-    # Get the embedding matrix from the semantic model
-    # This assumes lsasm has an attribute containing the actual vectors
-    embedding_matrix = lsasm.vectors  # Adjust this based on your model's structure
+    num_lsasms = len(lsasms)
 
     # Iterate through words
     for w in ds.data:
-        word_key = np.str_(w.lower())  # Create the key in the right format
-        try:
-            # Get the word's index in the embedding matrix
-            word_idx = lsasm[word_key]  # This returns the index, not the vector
+        v = []
+        for i in range(num_lsasms):
+            lsasm = lsasms[i]
+            size = sizes[i]
 
-            # Use the index to get the actual vector
-            vector = embedding_matrix[word_idx]
-        except (KeyError, IndexError, AttributeError):
-            # Word not found or other issues, use zeros
-            vector = np.zeros(size)
+            try:
+                # Convert the word to the appropriate format
+                # The model expects bytes, so encode the lowercased word
+                encoded_word = str.encode(w.lower())
 
-        newdata.append(vector)
+                # Get the vector using the model's __getitem__ method
+                vector = lsasm[encoded_word]
+                v = np.concatenate((v, vector))
+            except (KeyError, IndexError, ValueError) as e:
+                # Word not found or other issues, use zeros
+                v = np.concatenate((v, np.zeros(size)))
+
+        newdata.append(v)
 
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
+
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
