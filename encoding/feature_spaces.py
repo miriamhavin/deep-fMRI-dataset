@@ -171,7 +171,7 @@ def get_contextual_vectors(allstories):
 		print(f"Session {session} embedding shape: {session_embedding.get_ndim()}")
 		sm = make_semantic_model(wordseqs[session], [session_embedding], [4096])
 		embeddings[session] = sm.data
-		print(f"Session {session} embedding shape: {embeddings[session].shape}")
+		print(f"Session {session} embedding shape: {session_embedding.get_ndim()}")
 	return downsample_word_vectors(allstories, embeddings, wordseqs)
 ############################################
 ########## Feature Space Creation ##########
