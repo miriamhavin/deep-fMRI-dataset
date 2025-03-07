@@ -91,7 +91,23 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
     newdata = []
     num_lsasms = len(lsasms)
 
-    # Iterate through words
+    # Print some debug info
+    for i in range(num_lsasms):
+        lsasm = lsasms[i]
+        print(f"Model {i} has data shape: {lsasm.data.shape}")
+        print(f"Model {i} has {len(lsasm.vocab)} words in vocabulary")
+        print(f"First 5 words in vocab: {lsasm.vocab[:5]}")
+
+        # Check a few sample words to see if they're in the vocabulary
+        sample_words = ds.data[:5]  # First 5 words from the dataset
+        for word in sample_words:
+            encoded_word = str.encode(word.lower())
+            if encoded_word in lsasm.vindex:
+                print(f"Word '{word}' is in vocabulary at index {lsasm.vindex[encoded_word]}")
+            else:
+                print(f"Word '{word}' is NOT in vocabulary")
+
+    # Now try to get vectors
     for w in ds.data:
         v = []
         for i in range(num_lsasms):
@@ -99,21 +115,33 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
             size = sizes[i]
 
             try:
-                # Convert the word to the appropriate format
-                # The model expects bytes, so encode the lowercased word
-                encoded_word = str.encode(w.lower())
+                # Try multiple encoding formats
+                word_to_lookup = w.lower()
+                encoded_word = str.encode(word_to_lookup)
 
-                # Get the vector using the model's __getitem__ method
-                vector = lsasm[encoded_word]
-                v = np.concatenate((v, vector))
+                # First try direct lookup
+                if encoded_word in lsasm.vindex:
+                    word_idx = lsasm.vindex[encoded_word]
+                    vector = lsasm.data[:, word_idx]
+                    v = np.concatenate((v, vector))
+                else:
+                    # Try np.str_ format
+                    np_str_word = np.str_(word_to_lookup)
+                    if np_str_word in lsasm.vindex:
+                        word_idx = lsasm.vindex[np_str_word]
+                        vector = lsasm.data[:, word_idx]
+                        v = np.concatenate((v, vector))
+                    else:
+                        # Word not found, use zeros
+                        v = np.concatenate((v, np.zeros(size)))
             except (KeyError, IndexError, ValueError) as e:
-                # Word not found or other issues, use zeros
+                # Log the error
+                print(f"Error accessing word '{w}': {str(e)}")
                 v = np.concatenate((v, np.zeros(size)))
 
         newdata.append(v)
 
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
-
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
