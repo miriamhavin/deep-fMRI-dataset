@@ -102,8 +102,6 @@ def make_semantic_model(ds: DataSequence, semantic_model, size=4096):
             vector = semantic_model[word]
             # Ensure the vector is of the expected size
             if vector.size != size:
-                print(f"Warning: Vector size for '{word}' is {vector.size}; expected {size}. Adjusting size.")
-                # If not, adjust by either truncating or padding with zeros
                 if vector.size > size:
                     vector = vector[:size]  # Truncate if larger
                 else:

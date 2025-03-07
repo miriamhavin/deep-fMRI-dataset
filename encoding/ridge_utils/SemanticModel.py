@@ -23,7 +23,7 @@ class SemanticModel(object):
     def get_ndim(self):
         """Returns the number of dimensions in this model.
         """
-        return self.data.shape[0]
+        return self.data.shape
     ndim = property(get_ndim)
 
     def get_vindex(self):
