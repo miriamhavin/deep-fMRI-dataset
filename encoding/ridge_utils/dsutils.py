@@ -79,36 +79,35 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def make_semantic_model(ds: DataSequence, lsasms: list, sizes: list):
+def make_semantic_model(ds: DataSequence, lsasm, size):
     """
     ds
         datasequence to operate on
-    lsasms
-        semantic models to use - assumed to be ordered to match words in ds
-    sizes
-        sizes of resulting vectors from each semantic model
+    lsasm
+        single semantic model to use
+    size
+        size of resulting vectors from semantic model
     """
     newdata = []
-    num_lsasms = len(lsasms)
 
-    # Iterate through words and their corresponding vectors
-    for i, w in enumerate(ds.data):
-        v = []
-        for j in range(num_lsasms):
-            lsasm = lsasms[j]
-            size = sizes[j]
+    # Get the embedding matrix from the semantic model
+    # This assumes lsasm has an attribute containing the actual vectors
+    embedding_matrix = lsasm.vectors  # Adjust this based on your model's structure
 
-            # Direct access by position rather than word lookup
-            # Assuming vectors in lsasm are ordered to match words in ds.data
-            try:
-                # Get vector directly by position
-                vector = lsasm[i]  # Adjust based on how to access vectors by position
-                v = np.concatenate((v, vector))
-            except (IndexError, KeyError):
-                # Fallback to zeros if needed
-                v = np.concatenate((v, np.zeros((size))))
+    # Iterate through words
+    for w in ds.data:
+        word_key = np.str_(w.lower())  # Create the key in the right format
+        try:
+            # Get the word's index in the embedding matrix
+            word_idx = lsasm[word_key]  # This returns the index, not the vector
 
-        newdata.append(v)
+            # Use the index to get the actual vector
+            vector = embedding_matrix[word_idx]
+        except (KeyError, IndexError, AttributeError):
+            # Word not found or other issues, use zeros
+            vector = np.zeros(size)
+
+        newdata.append(vector)
 
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
 
