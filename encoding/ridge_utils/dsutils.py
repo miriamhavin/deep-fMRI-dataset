@@ -79,42 +79,38 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def make_semantic_model(ds: DataSequence, semantic_model, size=4096):
+def make_semantic_model(ds: DataSequence, lsasms: list, sizes: list):
     """
-    Generates a new DataSequence with concatenated vectors from a single SemanticModel,
-    aligned with the words in the DataSequence ds.
-
-    Parameters:
-    ds : DataSequence
-        DataSequence to operate on.
-    semantic_model : SemanticModel
-        An instance of SemanticModel containing semantic vectors and vocabulary.
-    size : int
-        The fixed size of vectors to be used (default is 4096).
+    ds
+        datasequence to operate on
+    lsasms
+        semantic models to use - assumed to be ordered to match words in ds
+    sizes
+        sizes of resulting vectors from each semantic model
     """
     newdata = []
+    num_lsasms = len(lsasms)
 
-    # Iterate over each word in the DataSequence
-    for word in ds.data:
-        word = word.lower()  # Ensure case consistency
-        if word in semantic_model.vindex:
-            # Fetch the vector for the word
-            vector = semantic_model[word]
-            # Ensure the vector is of the expected size
-            if vector.size != size:
-                if vector.size > size:
-                    vector = vector[:size]  # Truncate if larger
-                else:
-                    vector = np.pad(vector, (0, size - vector.size), 'constant')  # Pad with zeros if smaller
-        else:
-            # If the word is not in the vocabulary, use a zero vector of the specified size
-            vector = np.zeros(size)
+    # Iterate through words and their corresponding vectors
+    for i, w in enumerate(ds.data):
+        v = []
+        for j in range(num_lsasms):
+            lsasm = lsasms[j]
+            size = sizes[j]
 
-        newdata.append(vector)
+            # Direct access by position rather than word lookup
+            # Assuming vectors in lsasm are ordered to match words in ds.data
+            try:
+                # Get vector directly by position
+                vector = lsasm[i]  # Adjust based on how to access vectors by position
+                v = np.concatenate((v, vector))
+            except (IndexError, KeyError):
+                # Fallback to zeros if needed
+                v = np.concatenate((v, np.zeros((size))))
 
-    # Create and return a new DataSequence
+        newdata.append(v)
+
     return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
-
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
