@@ -61,9 +61,9 @@ if __name__ == "__main__":
 	print("trim: %d, ndelays: %d" % (trim, ndelays))
 
 	kf = KFold(n_splits=10)
-	for train_index, test_index in kf.split(all_stories):
-		train_stories = [all_stories[i] for i in train_index]
-		test_stories = [all_stories[i] for i in test_index]
+	for train_index, test_index in kf.split(allstories):
+		train_stories = [allstories[i] for i in train_index]
+		test_stories = [allstories[i] for i in test_index]
 
 		# Delayed stimulus
 		delRstim = apply_zscore_and_hrf(train_stories, downsampled_feat, trim, ndelays)
