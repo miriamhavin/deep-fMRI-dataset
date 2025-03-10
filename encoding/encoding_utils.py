@@ -65,8 +65,16 @@ def get_response(stories, subject):
       responses.extend(trimmed_data)
 
    stacked_data = np.vstack(responses)
-   # Z-score each voxel (column) independently along the time dimension
-   return zscore(stacked_data, axis=0)
+   means = np.mean(stacked_data, axis=0)
+   stds = np.std(stacked_data, axis=0, ddof=1)
+
+   # Avoid division by zero
+   stds[stds == 0] = 1.0
+
+   # Z-score calculation
+   z_scored_data = (stacked_data - means) / stds
+
+   return z_scored_data
 
 
 def flatten_data(data):
