@@ -85,7 +85,7 @@ if __name__ == "__main__":
 		use_corr=use_corr)
 
 	# Save regression results.
-	np.savez("%s/weights" % save_location, wt)
+	#np.savez("%s/weights" % save_location, wt)
 	np.savez("%s/corrs" % save_location, corrs)
 	np.savez("%s/valphas" % save_location, valphas)
 	np.savez("%s/bscorrs" % save_location, bscorrs)
