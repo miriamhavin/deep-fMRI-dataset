@@ -52,36 +52,44 @@ def cut_stories(stories, subject):
 
 
 def get_response(stories, subject):
-	"""Get the subject's fMRI response for stories, skipping files that do not exist."""
+	"""Get the subject's fMRI response for FSL-preprocessed data."""
 	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	responses = []
+
 	for story in stories:
 		week_num, lecture_num = get_week_lecture(story)
 		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+
+		# Load FSL-preprocessed data
 		img = nib.load(resp_path)
 		data = img.get_fdata()
 		flat_data = flatten_data(data)
+
 		responses.extend(flat_data)
 
 	stacked_data = np.vstack(responses)
 
-	# Print pre-zscoring stats
-	print(f"Pre-zscoring min/max: {np.min(stacked_data)}/{np.max(stacked_data)}")
+	# Handle outliers before z-scoring (robust approach)
+	for voxel in range(stacked_data.shape[1]):
+		voxel_data = stacked_data[:, voxel]
+		median = np.median(voxel_data)
+		mad = np.median(np.abs(voxel_data - median)) * 1.4826
+		threshold = 5 * mad
+		outliers = np.abs(voxel_data - median) > threshold
+		if np.any(outliers):
+			stacked_data[outliers, voxel] = np.clip(
+				voxel_data[outliers],
+				median - threshold,
+				median + threshold
+			)
 
+	# Now apply z-scoring
 	means = np.mean(stacked_data, axis=0)
 	stds = np.std(stacked_data, axis=0, ddof=1)
-
-	# Avoid division by zero
 	stds[stds == 0] = 1.0
-
-	# Z-score calculation
 	z_scored_data = (stacked_data - means) / stds
 
-	# Print post-zscoring stats
-	print(f"Post-zscoring min/max: {np.min(z_scored_data)}/{np.max(z_scored_data)}")
-
 	return z_scored_data
-
 
 def flatten_data(data):
 	"""
