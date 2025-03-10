@@ -370,8 +370,10 @@ def bootstrap_ridge(Rstim, Rresp, Pstim, Presp, alphas, nboots, chunklen, nchunk
     valinds : array_like, shape (TH, B)
         The indices of the training data that were used as "validation" for each bootstrap sample.
     """
-    initial_random_state = random.getstate()
-    print(f"Initial random state hash: {hash(str(initial_random_state))}")
+    print(f"Rstim shape: {Rstim.shape}")
+    print(f"Rresp shape: {Rresp.shape}")
+    print(f"Pstim shape: {Pstim.shape}")
+    print(f"Presp shape: {Presp.shape}")
 
     nresp, nvox = Rresp.shape
     valinds = [] # Will hold the indices into the validation data for each bootstrap
