@@ -52,29 +52,40 @@ def cut_stories(stories, subject):
 
 
 def get_response(stories, subject):
-   """Get the subject's fMRI response for stories, skipping files that do not exist."""
-   dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
-   responses = []
-   for story in stories:
-      week_num, lecture_num = get_week_lecture(story)
-      resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
-      img = nib.load(resp_path)
-      data = img.get_fdata()
-      flat_data = flatten_data(data)
-      trimmed_data = flat_data[10:-10, :]
-      responses.extend(trimmed_data)
+	"""Get the subject's fMRI response for stories, skipping files that do not exist."""
+	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
+	responses = []
+	for story in stories:
+		week_num, lecture_num = get_week_lecture(story)
+		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+		img = nib.load(resp_path)
+		data = img.get_fdata()
+		flat_data = flatten_data(data)
+		trimmed_data = flat_data[10:-10, :]
 
-   stacked_data = np.vstack(responses)
-   means = np.mean(stacked_data, axis=0)
-   stds = np.std(stacked_data, axis=0, ddof=1)
+		# Print min/max values to check for extreme values
+		print(f"Story {story} min/max: {np.min(trimmed_data)}/{np.max(trimmed_data)}")
 
-   # Avoid division by zero
-   stds[stds == 0] = 1.0
+		responses.extend(trimmed_data)
 
-   # Z-score calculation
-   z_scored_data = (stacked_data - means) / stds
+	stacked_data = np.vstack(responses)
 
-   return z_scored_data
+	# Print pre-zscoring stats
+	print(f"Pre-zscoring min/max: {np.min(stacked_data)}/{np.max(stacked_data)}")
+
+	means = np.mean(stacked_data, axis=0)
+	stds = np.std(stacked_data, axis=0, ddof=1)
+
+	# Avoid division by zero
+	stds[stds == 0] = 1.0
+
+	# Z-score calculation
+	z_scored_data = (stacked_data - means) / stds
+
+	# Print post-zscoring stats
+	print(f"Post-zscoring min/max: {np.min(z_scored_data)}/{np.max(z_scored_data)}")
+
+	return z_scored_data
 
 
 def flatten_data(data):
