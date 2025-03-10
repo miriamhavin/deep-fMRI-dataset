@@ -88,25 +88,58 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
     sizes
         list of sizes of resulting vectors from each semantic model
     """
+    # Validate inputs
+    assert len(lsasms) == len(sizes), "Number of semantic models must match number of sizes"
+
     newdata = []
     num_lsasms = len(lsasms)
 
+    # Check expected dimensions for each semantic model
+    for j, lsasm in enumerate(lsasms):
+        expected_size = sizes[j]
+        actual_size = lsasm.data.shape[1] if hasattr(lsasm, 'data') and hasattr(lsasm.data, 'shape') else None
+        if actual_size and actual_size != expected_size:
+            print(f"Warning: Model {j} has dimension {actual_size} but expected {expected_size}")
+
     for i in range(len(ds.data)):
-        v = []
+        # Initialize v as numpy array with zeros
+        v = np.array([], dtype=float)
+
         for j in range(num_lsasms):
             lsasm = lsasms[j]
             size = sizes[j]
 
             try:
-                # Access rows instead of columns since data is (N, 4096)
-                vector = lsasm.data[i] if i < lsasm.data.shape[0] else np.zeros(lsasm.data.shape[1])
-                v = np.concatenate((v, vector))
-            except (IndexError, ValueError) as e:
-                v = np.concatenate((v, np.zeros(size)))
+                # Verify we're not exceeding bounds
+                if hasattr(lsasm, 'data') and i < lsasm.data.shape[0]:
+                    vector = lsasm.data[i]
+                    # Verify vector dimension matches expected size
+                    if len(vector) != size:
+                        print(f"Warning: Vector from model {j} has {len(vector)} dimensions, expected {size}")
+                        # Resize if needed (pad or truncate)
+                        if len(vector) < size:
+                            vector = np.pad(vector, (0, size - len(vector)))
+                        else:
+                            vector = vector[:size]
+                else:
+                    vector = np.zeros(size)
+            except (IndexError, ValueError, AttributeError) as e:
+                print(f"Error accessing model {j} at index {i}: {e}")
+                vector = np.zeros(size)
+
+            # Concatenate to v
+            v = np.concatenate((v, vector))
 
         newdata.append(v)
 
-    return DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
+    # Verify final dimensions
+    result = np.array(newdata)
+    expected_feature_dim = sum(sizes)
+    if result.shape[1] != expected_feature_dim:
+        print(f"Warning: Final vectors have {result.shape[1]} dimensions, expected {expected_feature_dim}")
+
+    return DataSequence(result, ds.split_inds, ds.data_times, ds.tr_times)
+
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
