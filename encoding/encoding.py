@@ -108,6 +108,4 @@ if __name__ == "__main__":
 	np.savez("%s/valphas" % save_location, valphas)
 	np.savez("%s/bscorrs" % save_location, bscorrs)
 	np.savez("%s/valinds" % save_location, np.array(valinds))
-	valid_corrs = corrs[np.isfinite(corrs)]
-	total_r2 = np.sum(valid_corrs * np.abs(valid_corrs))
-	print("Total r2: %f" % total_r2)
+	print("Total r2: %d" % sum(corrs * np.abs(corrs)))
