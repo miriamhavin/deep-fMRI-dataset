@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
 	if zRresp_trimmed.size == 0 or zPresp_trimmed.size == 0:
 		print("Error: One of the response arrays is empty.")
-	sys.exit(1)
+		sys.exit(1)
 
 	wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
 		delRstim, zRresp_trimmed, delPstim, zPresp_trimmed, alphas, nboots, chunklen,
