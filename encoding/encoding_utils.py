@@ -64,8 +64,9 @@ def get_response(stories, subject):
 		img = nib.load(resp_path)
 		data = img.get_fdata()
 		flat_data = flatten_data(data)
+		trimmed_data = flat_data[10:-10, :]
 
-		responses.extend(flat_data)
+		responses.extend(trimmed_data)
 
 	stacked_data = np.vstack(responses)
 
