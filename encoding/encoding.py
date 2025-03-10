@@ -75,10 +75,10 @@ if __name__ == "__main__":
 
 	# Filter constant voxels
 	print("Filtering constant voxels...")
-	voxel_std = np.std(zRresp_trimmed, axis=0)
+	voxel_std = np.std(zPresp, axis=0)
 	non_constant_voxels = voxel_std > 1e-10
-	zRresp_trimmed = zRresp_trimmed[:, non_constant_voxels]
-	zPresp_trimmed = zPresp_trimmed[:, non_constant_voxels]
+	zRresp_trimmed = zPresp[:, non_constant_voxels]
+	zPresp_trimmed = zPresp[:, non_constant_voxels]
 
 	print(f"Original number of voxels: {len(voxel_std)}")
 	print(f"Number of non-constant voxels: {np.sum(non_constant_voxels)}")
