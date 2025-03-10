@@ -32,8 +32,8 @@ if 'arr_0' in corrs:
     print('Number of -inf values in corrs:', np.isneginf(corr_values).sum())
     print('Number of +inf values in corrs:', np.isposinf(corr_values).sum())
 
-    # Handle NaN and infinite values
-    corr_values = np.nan_to_num(corr_values, nan=0.0, posinf=0.0, neginf=0.0)
+    # Remove -inf values
+    corr_values = corr_values[np.isfinite(corr_values)]
 
     # Calculate some basic statistics
     print('Mean correlation:', np.mean(corr_values))
