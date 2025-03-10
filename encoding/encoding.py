@@ -64,6 +64,8 @@ if __name__ == "__main__":
 	print("delRstim: ", delRstim.shape)
 	delPstim = apply_zscore_and_hrf(test_stories, downsampled_feat, trim, ndelays)
 	print("delPstim: ", delPstim.shape)
+	print(f"NaNs in Rstim: {np.isnan(delRstim).sum()}, NaNs in Rresp: {np.isnan(delRstim).sum()}")
+	print(f"Infs in Rstim: {np.isinf(delRstim).sum()}, Infs in Rresp: {np.isinf(delRstim).sum()}")
 
 	# Response
 	zRresp = get_response(train_stories, subject)
