@@ -26,8 +26,8 @@ if 'arr_0' in corrs:
     print('corrs first few values:', corrs['arr_0'].flatten()[:5])
 
 # Check for NaN and infinite values
-if 'arr_0' in corrs:
-    corr_values = corrs['arr_0']
+if 'arr_0' in bscorrs:
+    corr_values = bscorrs['arr_0']
     print('Number of NaN values in corrs:', np.isnan(corr_values).sum())
     print('Number of -inf values in corrs:', np.isneginf(corr_values).sum())
     print('Number of +inf values in corrs:', np.isposinf(corr_values).sum())
