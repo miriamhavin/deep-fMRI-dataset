@@ -51,8 +51,6 @@ if __name__ == "__main__":
 			test_stories.append(ctstory)
 	assert len(set(train_stories) & set(test_stories)) == 0, "Train - Test overlap!"
 	allstories = list(set(train_stories) | set(test_stories))
-	print(test_stories)
-	print(train_stories)
 	save_location = join(REPO_DIR, "results", feature, subject)
 	print("Saving encoding model & results to:", save_location)
 	os.makedirs(save_location, exist_ok=True)
