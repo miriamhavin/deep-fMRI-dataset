@@ -72,6 +72,18 @@ if __name__ == "__main__":
 	print("zPresp: ", zPresp.shape)
 	zRresp_trimmed = zRresp[:delRstim.shape[0], :]
 	zPresp_trimmed = zPresp[:delPstim.shape[0], :]
+
+	# Add this code here to filter constant voxels
+	print("Filtering constant voxels...")
+	voxel_std = np.std(zRresp_trimmed, axis=0)
+	non_constant_voxels = voxel_std > 1e-10
+	zRresp_trimmed = zRresp_trimmed[:, non_constant_voxels]
+	zPresp_trimmed = zPresp_trimmed[:, non_constant_voxels]
+
+	print(f"Original number of voxels: {len(voxel_std)}")
+	print(f"Number of non-constant voxels: {np.sum(non_constant_voxels)}")
+	print(f"Filtered data shapes - zRresp_trimmed: {zRresp_trimmed.shape}, zPresp_trimmed: {zPresp_trimmed.shape}")
+
 	# Ridge
 	alphas = np.logspace(1, 3, 10)
 
