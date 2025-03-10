@@ -80,7 +80,7 @@ if __name__ == "__main__":
 		nboots, chunklen, nchunks, single_alpha, use_corr))
 
 	wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
-		delRstim, zRresp_trimmed, delPstim, zPresp, alphas, nboots, chunklen,
+		delRstim, zRresp_trimmed, delPstim, zPresp_trimmed, alphas, nboots, chunklen,
 		nchunks, singcutoff=singcutoff, single_alpha=single_alpha, 
 		use_corr=use_corr)
 
