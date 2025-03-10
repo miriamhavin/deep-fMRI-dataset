@@ -39,4 +39,4 @@ if 'arr_0' in corrs:
     print('Mean correlation:', np.mean(corr_values))
     print('Median correlation:', np.median(corr_values))
     print('Max correlation:', np.max(corr_values))
-    print('Min correlation:', np.min(cor
+    print('Min correlation:', np.min(corr_values))
