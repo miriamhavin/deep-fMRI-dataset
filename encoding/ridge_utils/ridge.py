@@ -370,11 +370,16 @@ def bootstrap_ridge(Rstim, Rresp, Pstim, Presp, alphas, nboots, chunklen, nchunk
     valinds : array_like, shape (TH, B)
         The indices of the training data that were used as "validation" for each bootstrap sample.
     """
+    initial_random_state = random.getstate()
+    print(f"Initial random state hash: {hash(str(initial_random_state))}")
+
     nresp, nvox = Rresp.shape
     valinds = [] # Will hold the indices into the validation data for each bootstrap
     
     Rcmats = []
     for bi in counter(range(nboots), countevery=1, total=nboots):
+        current_random_state = random.getstate()
+        print(f"Bootstrap {bi}, random state hash: {hash(str(current_random_state))}")
         logger.info("Selecting held-out test set..")
         allinds = range(nresp)
         indchunks = list(zip(*[iter(allinds)]*chunklen))
