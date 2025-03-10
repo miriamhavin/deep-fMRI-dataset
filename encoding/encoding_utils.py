@@ -27,7 +27,7 @@ def apply_zscore_and_hrf(stories, downsampled_feat, trim, ndelays):
 	Returns:
 		delstim: <float32>[TRs, features * ndelays]
 	"""
-	stim = [zscore(downsampled_feat[s][15+trim:-10-trim]) for s in stories]
+	stim = [zscore(downsampled_feat[s][5+trim:-trim]) for s in stories]
 	stim = np.vstack(stim)
 	delays = range(1, ndelays+1)
 	delstim = make_delayed(stim, delays)
@@ -61,7 +61,8 @@ def get_response(stories, subject):
 		img = nib.load(resp_path)
 		data = img.get_fdata()
 		flat_data = flatten_data(data)
-		responses.extend(flat_data)
+		trimmed_data = flat_data[10:-10, :]
+		responses.extend(trimmed_data)
 
 	return zscore(np.vstack(responses))
 
