@@ -108,4 +108,4 @@ if __name__ == "__main__":
 	np.savez("%s/valphas" % save_location, valphas)
 	np.savez("%s/bscorrs" % save_location, bscorrs)
 	np.savez("%s/valinds" % save_location, np.array(valinds))
-	print("Mean r2: %.4f" % np.mean(corrs ** 2))
+	print("Total r2: %d" % sum(corrs * np.abs(corrs)))
