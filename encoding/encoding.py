@@ -12,7 +12,7 @@ from feature_spaces import _FEATURE_CONFIG, get_feature_space
 from ridge_utils.ridge import bootstrap_ridge
 from config import REPO_DIR, EM_DATA_DIR
 from encoding_utils import get_week_lecture
-from sklearn.model_selection import KFold
+from sklearn.model_selection import GroupKFold
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -39,8 +39,9 @@ if __name__ == "__main__":
 
 	sessions = list(map(str, sessions))
 	with open(join(EM_DATA_DIR, "sess_to_story.json"), "r") as f:
-		sess_to_story = json.load(f) 
-	train_stories, test_stories = [], []
+		sess_to_story = json.load(f)
+	all_lectures = []
+	lecture_ids = []
 	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
 	for sess in sessions:
 		stories, tstory = sess_to_story[sess][0], sess_to_story[sess][1]
