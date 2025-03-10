@@ -212,23 +212,35 @@ def ridge_corr(Rstim, Pstim, Rresp, Presp, alphas, normalpha=False, corrmin=0.2,
     
     """
     ## Calculate SVD of stimulus matrix
+    ## Calculate SVD of stimulus matrix
     logger.info("Doing SVD...")
+    print(f"Rstim shape before SVD: {Rstim.shape}")
+
     try:
-        U,S,Vh = np.linalg.svd(Rstim, full_matrices=False)
+        U, S, Vh = np.linalg.svd(Rstim, full_matrices=False)
+        print(f"After SVD - U shape: {U.shape}, S shape: {S.shape}, Vh shape: {Vh.shape}")
     except np.linalg.LinAlgError:
         logger.info("NORMAL SVD FAILED, trying more robust dgesvd..")
         from text.regression.svd_dgesvd import svd_dgesvd
-        U,S,Vh = svd_dgesvd(Rstim, full_matrices=False)
+        U, S, Vh = svd_dgesvd(Rstim, full_matrices=False)
+        print(f"After robust SVD - U shape: {U.shape}, S shape: {S.shape}, Vh shape: {Vh.shape}")
 
     ## Truncate tiny singular values for speed
     origsize = S.shape[0]
+    print(f"Original S shape: {origsize}")
+
     ngoodS = np.sum(S > singcutoff)
-    nbad = origsize-ngoodS
-    U = U[:,:ngoodS]
+    print(f"Number of singular values above cutoff: {ngoodS}")
+
+    nbad = origsize - ngoodS
+    print(f"Number of singular values being dropped: {nbad}")
+
+    U = U[:, :ngoodS]
     S = S[:ngoodS]
     Vh = Vh[:ngoodS]
-    print(f"Original S shape: {S.shape[0]}")
-    logger.info("Dropped %d tiny singular values.. (U is now %s)"%(nbad, str(U.shape)))
+
+    print(f"After truncation - U shape: {U.shape}, S shape: {S.shape}, Vh shape: {Vh.shape}")
+    logger.info(f"Dropped {nbad} tiny singular values.. (U is now {str(U.shape)})")
 
     ## Normalize alpha by the LSV norm
     norm = S[0]
