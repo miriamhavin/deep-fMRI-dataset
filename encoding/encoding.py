@@ -78,7 +78,7 @@ if __name__ == "__main__":
 		print("zPresp: ", zPresp.shape)
 		zRresp_trimmed = zRresp[-delRstim.shape[0]:, :]
 		zPresp_trimmed = zPresp[-delPstim.shape[0]:, :]
-
+		print("zRresp_trimmed: ", zRresp_trimmed.shape)
 		# Filter constant voxels
 		print("Filtering constant voxels...")
 		voxel_std = np.std(zRresp_trimmed, axis=0)
