@@ -1,47 +1,26 @@
 import numpy as np
-import argparse
+import matplotlib.pyplot as plt
 
-# Define the file path
-parser = argparse.ArgumentParser()
-parser.add_argument("--subject", type=str, required=True)
-args = parser.parse_args()
-subject = args.subject
-file_path = f'/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/results/contextual/{subject}/'
+# Replace with your actual save location
+save_location = "/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/results/contextual/103"  # Example path
 
-# Load each file
-bscorrs = np.load(file_path + 'bscorrs.npz')
-corrs = np.load(file_path + 'corrs.npz')
-valinds = np.load(file_path + 'valinds.npz')
-valphas = np.load(file_path + 'valphas.npz')
+# Load the saved mean correlations
+mean_corrs_file = np.load(f"{save_location}/mean_corrs.npz")
+mean_corrs = mean_corrs_file['arr_0']  # NPZ files typically store arrays with default names like 'arr_0'
 
-# To see what arrays are stored in each file
-print('bscorrs contains:', list(bscorrs.keys()))
-print('corrs contains:', list(corrs.keys()))
-print('valinds contains:', list(valinds.keys()))
-print('valphas contains:', list(valphas.keys()))
+# Print basic statistics about the mean correlations
+print(f"Shape of mean correlations: {mean_corrs.shape}")
+print(f"Mean of mean correlations: {np.mean(mean_corrs)}")
+print(f"Median of mean correlations: {np.median(mean_corrs)}")
+print(f"Max mean correlation: {np.max(mean_corrs)}")
+print(f"Min mean correlation: {np.min(mean_corrs)}")
 
-# To access a specific array from a file (using 'arr_0' as an example, adjust based on actual keys)
-# This shows the shape and first few elements
-if 'arr_0' in bscorrs:
-    print('bscorrs shape:', bscorrs['arr_0'].shape)
-    print('bscorrs first few values:', bscorrs['arr_0'].flatten()[:5])
-
-if 'arr_0' in corrs:
-    print('corrs shape:', corrs['arr_0'].shape)
-    print('corrs first few values:', corrs['arr_0'].flatten()[:5])
-
-# Check for NaN and infinite values
-if 'arr_0' in bscorrs:
-    corr_values = bscorrs['arr_0']
-    print('Number of NaN values in corrs:', np.isnan(corr_values).sum())
-    print('Number of -inf values in corrs:', np.isneginf(corr_values).sum())
-    print('Number of +inf values in corrs:', np.isposinf(corr_values).sum())
-
-    # Remove -inf values
-    corr_values = corr_values[~np.isneginf(corr_values)]
-
-    # Calculate some basic statistics
-    print('Mean correlation:', np.mean(corr_values))
-    print('Median correlation:', np.median(corr_values))
-    print('Max correlation:', np.max(corr_values))
-    print('Min correlation:', np.min(corr_values))
+# Optional: create a histogram to visualize the distribution of mean correlations
+plt.figure(figsize=(10, 6))
+plt.hist(mean_corrs, bins=50)
+plt.title('Distribution of Mean Correlation Values')
+plt.xlabel('Mean Correlation')
+plt.ylabel('Count')
+plt.axvline(x=0, color='r', linestyle='--')  # Add a line at x=0 for reference
+plt.savefig(f"{save_location}/mean_corrs_histogram.png")
+print(f"Histogram saved to {save_location}/mean_corrs_histogram.png")
