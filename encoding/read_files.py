@@ -1,7 +1,9 @@
 import numpy as np
 
 # Define the file path
-file_path = '/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/results/contextual/105/'
+parser = argparse.ArgumentParser()
+parser.add_argument("--subject", type=str, required=True)
+file_path = f'/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/results/contextual/{subject}/'
 
 # Load each file
 bscorrs = np.load(file_path + 'bscorrs.npz')
