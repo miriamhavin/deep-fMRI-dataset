@@ -378,8 +378,7 @@ def bootstrap_ridge(Rstim, Rresp, Pstim, Presp, alphas, nboots, chunklen, nchunk
     
     Rcmats = []
     for bi in counter(range(nboots), countevery=1, total=nboots):
-        current_random_state = random.getstate()
-        print(f"Bootstrap {bi}, random state hash: {hash(str(current_random_state))}")
+        random.seed(42 + bi)
         logger.info("Selecting held-out test set..")
         allinds = range(nresp)
         indchunks = list(zip(*[iter(allinds)]*chunklen))
