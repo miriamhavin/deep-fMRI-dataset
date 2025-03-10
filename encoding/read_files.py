@@ -4,6 +4,8 @@ import argparse
 # Define the file path
 parser = argparse.ArgumentParser()
 parser.add_argument("--subject", type=str, required=True)
+args = parser.parse_args()
+subject = args.subject
 file_path = f'/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/results/contextual/{subject}/'
 
 # Load each file
