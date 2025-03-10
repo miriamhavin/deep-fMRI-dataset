@@ -63,7 +63,7 @@ def get_response(stories, subject):
 		flat_data = flatten_data(data)
 		responses.extend(flat_data)
 
-	return np.vstack(responses)
+	return zscore(np.vstack(responses))
 
 
 def flatten_data(data):
