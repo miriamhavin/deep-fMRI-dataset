@@ -227,7 +227,7 @@ def ridge_corr(Rstim, Pstim, Rresp, Presp, alphas, normalpha=False, corrmin=0.2,
     U = U[:,:ngoodS]
     S = S[:ngoodS]
     Vh = Vh[:ngoodS]
-    print(f"Original S shape: {S.shape}")
+    print(f"Original S shape: {S.shape[0]}")
     logger.info("Dropped %d tiny singular values.. (U is now %s)"%(nbad, str(U.shape)))
 
     ## Normalize alpha by the LSV norm
