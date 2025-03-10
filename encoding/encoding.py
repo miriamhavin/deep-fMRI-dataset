@@ -104,10 +104,10 @@ if __name__ == "__main__":
 		use_corr=use_corr)
 
 	# Save regression results.
-	np.savez("%s/corrs_fold_%d" % (save_location, kf.get_n_splits()), corrs)
-	np.savez("%s/valphas_fold_%d" % (save_location, kf.get_n_splits()), valphas)
-	np.savez("%s/bscorrs_fold_%d" % (save_location, kf.get_n_splits()), bscorrs)
-	np.savez("%s/valinds_fold_%d" % (save_location, kf.get_n_splits()), np.array(valinds))
+	np.savez("%s/corrs" % save_location, corrs)
+	np.savez("%s/valphas" % save_location, valphas)
+	np.savez("%s/bscorrs" % save_location, bscorrs)
+	np.savez("%s/valinds" % save_location, np.array(valinds))
 	valid_corrs = corrs[np.isfinite(corrs)]
 	total_r2 = np.sum(valid_corrs * np.abs(valid_corrs))
 	print("Total r2: %f" % total_r2)
