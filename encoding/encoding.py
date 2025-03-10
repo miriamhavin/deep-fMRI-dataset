@@ -64,13 +64,6 @@ if __name__ == "__main__":
 	print("delRstim: ", delRstim.shape)
 	delPstim = apply_zscore_and_hrf(test_stories, downsampled_feat, trim, ndelays)
 	print("delPstim: ", delPstim.shape)
-	# Add this near the beginning of your script
-	print(f"Rstim unique values: {len(np.unique(delRstim))}")
-	print(f"Rresp unique values: {len(np.unique(delPstim))}")
-	col_var = np.var(delRstim, axis=0)
-	print(f"Min column variance: {np.min(col_var)}")
-	print(f"Max column variance: {np.max(col_var)}")
-	print(f"Variance percentiles: {np.percentile(col_var, [10, 50, 90])}")
 
 	# Response
 	zRresp = get_response(train_stories, subject)

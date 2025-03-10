@@ -390,7 +390,13 @@ def bootstrap_ridge(Rstim, Rresp, Pstim, Presp, alphas, nboots, chunklen, nchunk
         PRstim = Rstim[heldinds,:]
         RRresp = Rresp[notheldinds,:]
         PRresp = Rresp[heldinds,:]
-        
+        # Add this before ridge regression
+        print(f"RRresp contains NaN: {np.isnan(RRresp).any()}")
+        print(f"PRresp contains NaN: {np.isnan(PRresp).any()}")
+        print(f"RRresp contains inf: {np.isinf(RRresp).any()}")
+        print(f"PRresp contains inf: {np.isinf(PRresp).any()}")
+        print(f"RRresp min/max: {np.min(RRresp)}/{np.max(RRresp)}")
+        print(f"Number of constant voxels in training: {np.sum(np.std(RRresp, axis=0) < 1e-10)}")
         # Run ridge regression using this test set
         Rcmat = ridge_corr(RRstim, PRstim, RRresp, PRresp, alphas,
                            corrmin=corrmin, singcutoff=singcutoff,
