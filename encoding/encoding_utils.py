@@ -52,19 +52,21 @@ def cut_stories(stories, subject):
 
 
 def get_response(stories, subject):
-	"""Get the subject's fMRI response for stories, skipping files that do not exist."""
-	dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
-	responses = []
-	for story in stories:
-		week_num, lecture_num = get_week_lecture(story)
-		resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
-		img = nib.load(resp_path)
-		data = img.get_fdata()
-		flat_data = flatten_data(data)
-		trimmed_data = flat_data[10:-10, :]
-		responses.extend(trimmed_data)
+   """Get the subject's fMRI response for stories, skipping files that do not exist."""
+   dir_path = "/sci/labs/arielgoldstein/miriam1234/6motion_students"
+   responses = []
+   for story in stories:
+      week_num, lecture_num = get_week_lecture(story)
+      resp_path = os.path.join(dir_path, f"s{subject}_wk{week_num}_vid{lecture_num}_6motion_mni.nii.gz")
+      img = nib.load(resp_path)
+      data = img.get_fdata()
+      flat_data = flatten_data(data)
+      trimmed_data = flat_data[10:-10, :]
+      responses.extend(trimmed_data)
 
-	return zscore(np.vstack(responses))
+   stacked_data = np.vstack(responses)
+   # Z-score each voxel (column) independently along the time dimension
+   return zscore(stacked_data, axis=0)
 
 
 def flatten_data(data):
