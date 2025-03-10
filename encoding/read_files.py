@@ -1,7 +1,7 @@
 import numpy as np
 
 # Define the file path
-file_path = "/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/results/contextual/102/"
+file_path = "/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/results/contextual/105/"
 
 # Load each file
 bscorrs = np.load(file_path + "bscorrs.npz")
