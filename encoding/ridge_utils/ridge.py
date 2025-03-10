@@ -227,6 +227,7 @@ def ridge_corr(Rstim, Pstim, Rresp, Presp, alphas, normalpha=False, corrmin=0.2,
     U = U[:,:ngoodS]
     S = S[:ngoodS]
     Vh = Vh[:ngoodS]
+    print(f"Original S shape: {S.shape}")
     logger.info("Dropped %d tiny singular values.. (U is now %s)"%(nbad, str(U.shape)))
 
     ## Normalize alpha by the LSV norm
@@ -370,11 +371,6 @@ def bootstrap_ridge(Rstim, Rresp, Pstim, Presp, alphas, nboots, chunklen, nchunk
     valinds : array_like, shape (TH, B)
         The indices of the training data that were used as "validation" for each bootstrap sample.
     """
-    print(f"Rstim shape: {Rstim.shape}")
-    print(f"Rresp shape: {Rresp.shape}")
-    print(f"Pstim shape: {Pstim.shape}")
-    print(f"Presp shape: {Presp.shape}")
-
     nresp, nvox = Rresp.shape
     valinds = [] # Will hold the indices into the validation data for each bootstrap
     
