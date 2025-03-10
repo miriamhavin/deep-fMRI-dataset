@@ -76,8 +76,8 @@ if __name__ == "__main__":
 		print("zRresp: ", zRresp.shape)
 		zPresp = get_response(test_stories, subject)
 		print("zPresp: ", zPresp.shape)
-		zRresp_trimmed = zRresp[:delRstim.shape[0], :]
-		zPresp_trimmed = zPresp[:delPstim.shape[0], :]
+		zRresp_trimmed = zRresp[-delRstim.shape[0]:, :]
+		zPresp_trimmed = zPresp[-delPstim.shape[0]:, :]
 
 		# Filter constant voxels
 		print("Filtering constant voxels...")
