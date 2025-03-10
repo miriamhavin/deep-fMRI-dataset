@@ -111,4 +111,6 @@ if __name__ == "__main__":
 		np.savez("%s/valphas_fold_%d" % (save_location, kf.get_n_splits()), valphas)
 		np.savez("%s/bscorrs_fold_%d" % (save_location, kf.get_n_splits()), bscorrs)
 		np.savez("%s/valinds_fold_%d" % (save_location, kf.get_n_splits()), np.array(valinds))
-		print("Total r2: %d" % sum(corrs * np.abs(corrs)))
+		valid_corrs = corrs[np.isfinite(corrs)]
+		total_r2 = np.sum(valid_corrs * np.abs(valid_corrs))
+		print("Total r2: %f" % total_r2)
