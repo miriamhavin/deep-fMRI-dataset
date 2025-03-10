@@ -12,6 +12,7 @@ from feature_spaces import _FEATURE_CONFIG, get_feature_space
 from ridge_utils.ridge import bootstrap_ridge
 from config import REPO_DIR, EM_DATA_DIR
 from encoding_utils import get_week_lecture
+from sklearn.model_selection import KFold
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -59,35 +60,55 @@ if __name__ == "__main__":
 	print("Stimulus & Response parameters:")
 	print("trim: %d, ndelays: %d" % (trim, ndelays))
 
-	# Delayed stimulus
-	delRstim = apply_zscore_and_hrf(train_stories, downsampled_feat, trim, ndelays)
-	print("delRstim: ", delRstim.shape)
-	delPstim = apply_zscore_and_hrf(test_stories, downsampled_feat, trim, ndelays)
-	print("delPstim: ", delPstim.shape)
+	kf = KFold(n_splits=10)
+	for train_index, test_index in kf.split(all_stories):
+		train_stories = [all_stories[i] for i in train_index]
+		test_stories = [all_stories[i] for i in test_index]
 
-	# Response
-	zRresp = get_response(train_stories, subject)
-	print("zRresp: ", zRresp.shape)
-	zPresp = get_response(test_stories, subject)
-	print("zPresp: ", zPresp.shape)
-	zRresp_trimmed = zRresp[:delRstim.shape[0], :]
-	zPresp_trimmed = zPresp[:delPstim.shape[0], :]
-	# Ridge
-	alphas = np.logspace(1, 3, 10)
+		# Delayed stimulus
+		delRstim = apply_zscore_and_hrf(train_stories, downsampled_feat, trim, ndelays)
+		print("delRstim: ", delRstim.shape)
+		delPstim = apply_zscore_and_hrf(test_stories, downsampled_feat, trim, ndelays)
+		print("delPstim: ", delPstim.shape)
 
-	print("Ridge parameters:")
-	print("nboots: %d, chunklen: %d, nchunks: %d, single_alpha: %s, use_corr: %s" % (
-		nboots, chunklen, nchunks, single_alpha, use_corr))
+		# Response
+		zRresp = get_response(train_stories, subject)
+		print("zRresp: ", zRresp.shape)
+		zPresp = get_response(test_stories, subject)
+		print("zPresp: ", zPresp.shape)
+		zRresp_trimmed = zRresp[:delRstim.shape[0], :]
+		zPresp_trimmed = zPresp[:delPstim.shape[0], :]
 
-	wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
-		delRstim, zRresp_trimmed, delPstim, zPresp_trimmed, alphas, nboots, chunklen,
-		nchunks, singcutoff=singcutoff, single_alpha=single_alpha, 
-		use_corr=use_corr)
+		# Filter constant voxels
+		print("Filtering constant voxels...")
+		voxel_std = np.std(zRresp_trimmed, axis=0)
+		non_constant_voxels = voxel_std > 1e-10
+		zRresp_trimmed = zRresp_trimmed[:, non_constant_voxels]
+		zPresp_trimmed = zPresp_trimmed[:, non_constant_voxels]
 
-	# Save regression results.
-	#np.savez("%s/weights" % save_location, wt)
-	np.savez("%s/corrs" % save_location, corrs)
-	np.savez("%s/valphas" % save_location, valphas)
-	np.savez("%s/bscorrs" % save_location, bscorrs)
-	np.savez("%s/valinds" % save_location, np.array(valinds))
-	print("Total r2: %d" % sum(corrs * np.abs(corrs)))
+		print(f"Original number of voxels: {len(voxel_std)}")
+		print(f"Number of non-constant voxels: {np.sum(non_constant_voxels)}")
+		print(f"Filtered data shapes - zRresp_trimmed: {zRresp_trimmed.shape}, zPresp_trimmed: {zPresp_trimmed.shape}")
+
+		# Ridge
+		alphas = np.logspace(1, 3, 10)
+
+		print("Ridge parameters:")
+		print("nboots: %d, chunklen: %d, nchunks: %d, single_alpha: %s, use_corr: %s" % (
+			nboots, chunklen, nchunks, single_alpha, use_corr))
+
+		if zRresp_trimmed.size == 0 or zPresp_trimmed.size == 0:
+			print("Error: One of the response arrays is empty.")
+			sys.exit(1)
+
+		wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
+			delRstim, zRresp_trimmed, delPstim, zPresp_trimmed, alphas, nboots, chunklen,
+			nchunks, singcutoff=singcutoff, single_alpha=single_alpha,
+			use_corr=use_corr)
+
+		# Save regression results.
+		np.savez("%s/corrs_fold_%d" % (save_location, kf.get_n_splits()), corrs)
+		np.savez("%s/valphas_fold_%d" % (save_location, kf.get_n_splits()), valphas)
+		np.savez("%s/bscorrs_fold_%d" % (save_location, kf.get_n_splits()), bscorrs)
+		np.savez("%s/valinds_fold_%d" % (save_location, kf.get_n_splits()), np.array(valinds))
+		print("Total r2: %d" % sum(corrs * np.abs(corrs)))
