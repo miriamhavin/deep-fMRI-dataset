@@ -79,17 +79,25 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def make_semantic_model(ds: DataSequence, lsasms, sizes):
-    """
-    ds
-        datasequence to operate on
-    lsasms
-        list of semantic models to use
-    sizes
-        list of sizes of resulting vectors from each semantic model
-    """
-    # Validate inputs
-    lsasm = lsasms[0]
+def make_semantic_model(ds: DataSequence, lsasm, size):
+    print(
+        f"DataSequence data shape: {ds.data.shape if hasattr(ds.data, 'shape') else 'not a numpy array, length=' + str(len(ds.data))}")
+    print(f"Semantic model data shape: {lsasm.data.shape}")
+    print(f"Expected vector size: {size}")
+    print(f"DataSequence split indices: {ds.split_inds}")
+    print(f"DataSequence data times length: {len(ds.data_times)}")
+    print(f"DataSequence TR times length: {len(ds.tr_times)}")
+
+    # Check if dimensions align
+    if len(ds.data) != lsasm.data.shape[0]:
+        print(
+            f"WARNING: Mismatch between DataSequence length ({len(ds.data)}) and semantic model vectors ({lsasm.data.shape[0]})")
+
+    if lsasm.data.shape[1] != size:
+        print(
+            f"WARNING: Mismatch between semantic model vector dimension ({lsasm.data.shape[1]}) and expected size ({size})")
+
+    # Create new DataSequence with the embedding data
     return DataSequence(lsasm.data, ds.split_inds, ds.data_times, ds.tr_times)
 
 
