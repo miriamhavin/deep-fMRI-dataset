@@ -2,7 +2,7 @@ import numpy as np
 import itertools as itools
 from ridge_utils.DataSequence import DataSequence
 
-DEFAULT_BAD_WORDS = frozenset(["[noise]", "<unk>"])
+DEFAULT_BAD_WORDS = frozenset([])
 
 def make_word_ds(grids, trfiles, bad_words=DEFAULT_BAD_WORDS):
     """Creates DataSequence objects containing the words from each grid, with any words appearing
