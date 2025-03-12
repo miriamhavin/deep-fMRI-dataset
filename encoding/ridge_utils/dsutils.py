@@ -103,6 +103,24 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
     print(f"Sizes for each model: {sizes}")
     print(f"Total vector size: {sum(sizes)}")
 
+    # Debug: Check what's in the first semantic model
+    print("Checking semantic model content:")
+    if lsasms and len(lsasms) > 0:
+        first_model = lsasms[0]
+        if hasattr(first_model, 'keys'):
+            # Try to get a few keys to see what's in there
+            print(f"Model has keys method. Sample keys (up to 5):")
+            try:
+                keys = list(first_model.keys())[:5]
+                print(f"Keys format: {type(keys[0]) if keys else 'No keys'}")
+                for k in keys:
+                    print(f"  - {k} ({type(k)})")
+            except Exception as e:
+                print(f"Error getting keys: {e}")
+        else:
+            print("Model doesn't have keys method")
+            print(f"Model type: {type(first_model)}")
+
     newdata = []
     num_lsasms = len(lsasms)
 
@@ -126,14 +144,41 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
             size = sizes[j]
 
             try:
-                # Get vector for current word from the semantic model
-                word_vector = lsasm[str.encode(word.lower())]
+                # Try different word encoding formats to find a match
+                word_lower = word.lower()
 
-                # Place it at the correct position in the context vector
-                context_vector[current_pos:current_pos + size] = word_vector
-
+                # Debug additional word format attempts
                 if i % 100 == 0:
-                    print(f"  - Model {j}: Word found, vector shape: {word_vector.shape}")
+                    print(f"  - Trying different formats for '{word}'")
+                    formats_to_try = [
+                        word_lower,  # plain lowercase
+                        str.encode(word_lower),  # encoded bytes
+                        word_lower.encode('utf-8'),  # explicitly utf-8 encoded
+                        word,  # original case
+                        str.encode(word)  # original case encoded
+                    ]
+                    print(f"  - Formats: {[(f, type(f)) for f in formats_to_try]}")
+
+                # Try different formats
+                vector_found = False
+                for word_format in [word_lower, str.encode(word_lower), word_lower.encode('utf-8'), word,
+                                    str.encode(word)]:
+                    try:
+                        word_vector = lsasm[word_format]
+                        vector_found = True
+                        # Place it at the correct position in the context vector
+                        context_vector[current_pos:current_pos + size] = word_vector
+                        if i % 100 == 0:
+                            print(
+                                f"  - Model {j}: Word found with format {type(word_format)}, vector shape: {word_vector.shape}")
+                        break
+                    except (KeyError, TypeError):
+                        continue
+
+                # If no format worked
+                if not vector_found:
+                    raise KeyError(f"Word not found in any format: {word}")
+
             except KeyError:
                 # If word not found, leave zeros in that position
                 missing_words_count += 1
@@ -164,7 +209,6 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
     print(f"TR times length: {len(result.tr_times) if result.tr_times is not None else 'None'}")
 
     return result
-
 
 def make_semantic_model(ds: DataSequence, lsasms, sizes):
     """
