@@ -130,10 +130,6 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
     for i in range(len(ds.data)):
         word = ds.data[i]
         context_vector = np.zeros(sum(sizes))  # Initialize with zeros for the total size
-
-        if i % 100 == 0:
-            print(f"Processing word {i}/{len(ds.data)}: '{word}'")
-
         current_pos = 0
         for j in range(num_lsasms):
             lsasm = lsasms[j]
@@ -145,7 +141,6 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
 
                 # Debug additional word format attempts
                 if i % 100 == 0:
-                    print(f"  - Trying different formats for '{word}'")
                     formats_to_try = [
                         word_lower,  # plain lowercase
                         str.encode(word_lower),  # encoded bytes
@@ -153,7 +148,6 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
                         word,  # original case
                         str.encode(word)  # original case encoded
                     ]
-                    print(f"  - Formats: {[(f, type(f)) for f in formats_to_try]}")
 
                 # Try different formats
                 vector_found = False
@@ -165,9 +159,7 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
                         # Place it at the correct position in the context vector
                         context_vector[current_pos:current_pos + size] = word_vector
                         if i % 100 == 0:
-                            print(
-                                f"  - Model {j}: Word found with format {type(word_format)}, vector shape: {word_vector.shape}")
-                        break
+                            break
                     except (KeyError, TypeError):
                         continue
 
@@ -178,18 +170,9 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
             except KeyError:
                 # If word not found, leave zeros in that position
                 missing_words_count += 1
-                if i % 100 == 0:
-                    print(f"  - Model {j}: Word '{word}' not found in model {j}")
-
             current_pos += size
 
         newdata.append(context_vector)
-
-        # Print a sample of the first vector to verify structure
-        if i == 0:
-            print(f"First context vector shape: {context_vector.shape}")
-            print(f"First few elements: {context_vector[:10]}")
-            print(f"Last few elements: {context_vector[-10:]}")
 
     print(f"Processing complete. Total words: {len(ds.data)}")
     print(f"Words missing from at least one model: {missing_words_count}")
