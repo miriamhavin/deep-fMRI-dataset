@@ -84,7 +84,40 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
     Creates a new DataSequence with embeddings directly from the semantic model,
     and handles mismatches by inserting zero vectors as needed.
     """
-    return DataSequence(lsasm.data, ds.split_inds, ds.data_times, ds.tr_times)
+    # Convert semantic model vocab to list if it's not already
+    lsasm_words = list(lsasm.vocab) if hasattr(lsasm, 'vocab') else []
+
+    # Create a file to save the word lists - easier to compare than console output
+    with open("word_comparison.txt", "w", encoding="utf-8") as f:
+        # Write header
+        f.write("INDEX\tDATASEQUENCE\tSEMANTICMODEL\tMATCH\n")
+
+        # Write word pairs
+        min_length = min(len(ds.data), len(lsasm_words))
+        for i in range(min_length):
+            ds_word = str(ds.data[i]).lower()
+            lsasm_word = str(lsasm_words[i]).lower()
+            match = "YES" if ds_word == lsasm_word else "NO"
+            f.write(f"{i}\t{ds_word}\t{lsasm_word}\t{match}\n")
+
+        # Write extra words from the longer list
+        if len(ds.data) > len(lsasm_words):
+            for i in range(len(lsasm_words), len(ds.data)):
+                f.write(f"{i}\t{str(ds.data[i]).lower()}\t[MISSING]\tNO\n")
+        elif len(lsasm_words) > len(ds.data):
+            for i in range(len(ds.data), len(lsasm_words)):
+                f.write(f"{i}\t[MISSING]\t{str(lsasm_words[i]).lower()}\tNO\n")
+
+    print(f"Word comparison saved to 'word_comparison.txt'")
+
+    # Check if dimensions align
+    if len(ds.data) != lsasm.data.shape[0]:
+        print(
+            f"WARNING: Mismatch between DataSequence length ({len(ds.data)}) and semantic model vectors ({lsasm.data.shape[0]})")
+
+    # Create new DataSequence with the adjusted embedding data
+    return DataSequence(adjusted_data, ds.split_inds, ds.data_times, ds.tr_times)
+
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
