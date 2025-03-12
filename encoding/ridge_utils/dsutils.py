@@ -189,20 +189,37 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
 
     return result
 
-def make_semantic_model(ds: DataSequence, lsasms, sizes):
+
+def make_semantic_model(ds: DataSequence, lsasms: list, sizes: list):
     """
-    ds
-        datasequence to operate on
-    lsasms
+    Creates a semantic model by concatenating word vectors from multiple semantic models.
+
+    Parameters:
+    -----------
+    ds : DataSequence
+        datasequence to operate on (provides word order)
+    lsasms : list
         list of semantic models to use
-    sizes
+    sizes : list
         list of sizes of resulting vectors from each semantic model
+
+    Returns:
+    --------
+    DataSequence
+        A new DataSequence with the concatenated semantic vectors
     """
     # Validate inputs
     assert len(lsasms) == len(sizes), "Number of semantic models must match number of sizes"
 
     newdata = []
     num_lsasms = len(lsasms)
+    total_words = len(ds.data)
+
+    # Log configuration
+    print(f"Creating semantic model from {num_lsasms} models for {total_words} words")
+    print(f"Expected vector dimensions: {sizes}")
+    total_dim = sum(sizes)
+    print(f"Total dimension will be {total_dim}")
 
     # Check expected dimensions for each semantic model
     for j, lsasm in enumerate(lsasms):
@@ -210,31 +227,43 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
         actual_size = lsasm.data.shape[1] if hasattr(lsasm, 'data') and hasattr(lsasm.data, 'shape') else None
         if actual_size and actual_size != expected_size:
             print(f"Warning: Model {j} has dimension {actual_size} but expected {expected_size}")
+            # Update the size to match actual dimension
+            print(f"Updating expected size for model {j} from {sizes[j]} to {actual_size}")
+            sizes[j] = actual_size
 
-    for i in range(len(ds.data)):
-        # Initialize v as numpy array with zeros
+    # Recalculate total dimension after adjustments
+    total_dim = sum(sizes)
+    print(f"Adjusted total dimension: {total_dim}")
+
+    for i in range(total_words):
+        word = ds.data[i]
         v = np.array([], dtype=float)
+
+        if i % 500 == 0:
+            print(f"Processing word {i}/{total_words}: '{word}'")
 
         for j in range(num_lsasms):
             lsasm = lsasms[j]
             size = sizes[j]
 
             try:
-                # Verify we're not exceeding bounds
-                if hasattr(lsasm, 'data') and i < lsasm.data.shape[0]:
-                    vector = lsasm.data[i]
-                    # Verify vector dimension matches expected size
-                    if len(vector) != size:
-                        print(f"Warning: Vector from model {j} has {len(vector)} dimensions, expected {size}")
-                        # Resize if needed (pad or truncate)
-                        if len(vector) < size:
-                            vector = np.pad(vector, (0, size - len(vector)))
-                        else:
-                            vector = vector[:size]
-                else:
-                    vector = np.zeros(size)
-            except (IndexError, ValueError, AttributeError) as e:
-                print(f"Error accessing model {j} at index {i}: {e}")
+                # Get the vector for the current word using the semantic model's __getitem__ method
+                vector = lsasm[word]
+
+                # Verify vector dimension matches expected size
+                if len(vector) != size:
+                    if i % 500 == 0:
+                        print(
+                            f"Warning: Vector for word '{word}' from model {j} has {len(vector)} dimensions, expected {size}")
+
+                    # Resize if needed (pad or truncate)
+                    if len(vector) < size:
+                        vector = np.pad(vector, (0, size - len(vector)))
+                    else:
+                        vector = vector[:size]
+            except Exception as e:
+                if i % 500 == 0:
+                    print(f"Error accessing vector for word '{word}' in model {j}: {e}")
                 vector = np.zeros(size)
 
             # Concatenate to v
@@ -242,14 +271,23 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
 
         newdata.append(v)
 
-    # Verify final dimensions
+        # Print sample of first vector to verify structure
+        if i == 0:
+            print(f"First vector shape: {v.shape}")
+            print(f"First few elements: {v[:10]}")
+            print(f"Last few elements: {v[-10:]}")
+
+    # Create final result
     result = np.array(newdata)
+
+    # Verify final dimensions
+    print(f"Final data shape: {result.shape}")
     expected_feature_dim = sum(sizes)
     if result.shape[1] != expected_feature_dim:
         print(f"Warning: Final vectors have {result.shape[1]} dimensions, expected {expected_feature_dim}")
 
+    # Create and return new DataSequence
     return DataSequence(result, ds.split_inds, ds.data_times, ds.tr_times)
-
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
