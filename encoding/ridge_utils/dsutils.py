@@ -79,7 +79,7 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def make_semantic_model(ds: DataSequence, lsasm, size):
+def make_semantic_model(ds: DataSequence, lsasm, size, session):
     """
     Creates a new DataSequence with embeddings directly from the semantic model,
     and handles mismatches by inserting zero vectors as needed.
@@ -88,7 +88,7 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
     lsasm_words = list(lsasm.vocab) if hasattr(lsasm, 'vocab') else []
 
     # Create a file to save the word lists - easier to compare than console output
-    with open("word_comparison.txt", "w", encoding="utf-8") as f:
+    with open(f"word_comparison_session_{session}.txt", "w", encoding="utf-8") as f:
         # Write header
         f.write("INDEX\tDATASEQUENCE\tSEMANTICMODEL\tMATCH\n")
 
