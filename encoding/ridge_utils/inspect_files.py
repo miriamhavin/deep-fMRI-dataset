@@ -6,7 +6,7 @@ import json
 from pprint import pprint
 
 
-def inspect_hdf5(filename):
+def inspect_hdf5(filename, args=None):
     """
     Thoroughly inspects an HDF5 file, examining structure, dimensions, and content.
 
@@ -14,6 +14,8 @@ def inspect_hdf5(filename):
     -----------
     filename : str
         Path to the HDF5 file to inspect
+    args : argparse.Namespace, optional
+        Command line arguments
     """
     print(f"\n{'=' * 80}")
     print(f"INSPECTING HDF5 FILE: {filename}")
@@ -195,6 +197,14 @@ def inspect_hdf5(filename):
                                     vector = embeddings[idx, :]
 
                             print(f"  - '{word}': shape={vector.shape}, first 5 elements={vector[:5]}")
+
+                        # Check if we should print all words
+                        if args.print_words:
+                            print("\nComplete list of all words:")
+                            for i, word in enumerate(words):
+                                if isinstance(word, bytes):
+                                    word = word.decode('utf-8')
+                                print(f"{i + 1}. {word}")
                     except Exception as e:
                         print(f"Error sampling word vectors: {e}")
             else:
@@ -221,14 +231,31 @@ def main():
     parser = argparse.ArgumentParser(description='Inspect HDF5 files in detail')
     parser.add_argument('files', nargs='+', help='HDF5 files to inspect')
     parser.add_argument('--save', help='Save inspection results to a JSON file')
+    parser.add_argument('--print-words', action='store_true', help='Print all words in the vocabulary')
+    parser.add_argument('--show-dimensions', action='store_true',
+                        help='Print detailed dimension information for all datasets')
 
     args = parser.parse_args()
 
     all_metadata = {}
     for filename in args.files:
-        metadata = inspect_hdf5(filename)
+        metadata = inspect_hdf5(filename, args)
         if metadata:
             all_metadata[filename] = metadata
+
+        # If show-dimensions flag is specified, print detailed dimension info
+        if args.show_dimensions:
+            try:
+                with h5py.File(filename, 'r') as f:
+                    print(f"\nDetailed dimensions for {filename}:")
+
+                    def print_dimensions(name, obj):
+                        if isinstance(obj, h5py.Dataset):
+                            print(f"Dataset: {name}, Shape: {obj.shape}, Type: {obj.dtype}")
+
+                    f.visititems(print_dimensions)
+            except Exception as e:
+                print(f"Error showing dimensions: {e}")
 
     if args.save and all_metadata:
         with open(args.save, 'w') as f:
