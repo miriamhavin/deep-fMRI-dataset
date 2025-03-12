@@ -116,7 +116,7 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
             f"WARNING: Mismatch between DataSequence length ({len(ds.data)}) and semantic model vectors ({lsasm.data.shape[0]})")
 
     # Create new DataSequence with the adjusted embedding data
-    return DataSequence(adjusted_data, ds.split_inds, ds.data_times, ds.tr_times)
+    return DataSequence(lsasm.data, ds.split_inds, ds.data_times, ds.tr_times)
 
 
 def make_character_model(dss):
