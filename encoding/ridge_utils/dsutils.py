@@ -82,7 +82,7 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
 def make_semantic_model(ds: DataSequence, lsasm, size):
     """
     Creates a new DataSequence with embeddings directly from the semantic model,
-    and performs detailed comparison of word differences.
+    and verifies that word ordering matches between datasets.
     """
     # Print basic dimensions
     print(f"DataSequence length: {len(ds.data)}")
@@ -94,68 +94,47 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
         print(
             f"WARNING: Mismatch between DataSequence length ({len(ds.data)}) and semantic model vectors ({lsasm.data.shape[0]})")
 
-        # Compare the actual word lists to find differences
-        print("\nComparing word sequences...")
+    # Convert semantic model vocab to list if it's not already
+    lsasm_words = list(lsasm.vocab) if hasattr(lsasm, 'vocab') else []
 
-        # Convert semantic model vocab to list if it's not already
-        lsasm_words = list(lsasm.vocab) if hasattr(lsasm, 'vocab') else []
+    # Check word ordering
+    print("\nVerifying word order consistency...")
 
-        # Create sets of words for comparison
-        ds_words_set = set(str(w).lower() for w in ds.data)
-        lsasm_words_set = set(str(w).lower() for w in lsasm_words)
+    # Determine the length to check
+    min_length = min(len(ds.data), len(lsasm_words))
 
-        # Find words that are only in one set
-        only_in_ds = ds_words_set - lsasm_words_set
-        only_in_lsasm = lsasm_words_set - ds_words_set
+    # Count matching words at same position
+    matching_count = 0
+    diff_indices = []
 
-        # Print summary statistics
-        print(f"\nWords only in DataSequence: {len(only_in_ds)}")
-        print(f"Words only in SemanticModel: {len(only_in_lsasm)}")
+    for i in range(min_length):
+        ds_word = str(ds.data[i]).lower()
+        lsasm_word = str(lsasm_words[i]).lower()
 
-        # Show some examples from each
-        if only_in_ds:
-            print("\nSample words only in DataSequence (max 10):")
-            for w in list(only_in_ds)[:10]:
-                print(f"  '{w}'")
+        if ds_word == lsasm_word:
+            matching_count += 1
+        else:
+            diff_indices.append(i)
+            # Only collect up to 10 differences
+            if len(diff_indices) <= 10:
+                print(f"Order mismatch at index {i}:")
+                print(f"  DataSequence: '{ds.data[i]}'")
+                print(f"  SemanticModel: '{lsasm_words[i]}'")
 
-        if only_in_lsasm:
-            print("\nSample words only in SemanticModel (max 10):")
-            for w in list(only_in_lsasm)[:10]:
-                print(f"  '{w}'")
+    # Print summary statistics
+    match_percentage = (matching_count / min_length) * 100 if min_length > 0 else 0
+    print(f"\nOrder match summary:")
+    print(f"  Words in same position: {matching_count} out of {min_length} ({match_percentage:.2f}%)")
+    print(f"  Total position mismatches: {len(diff_indices)}")
 
-        # Determine the minimum length for sequence comparison
-        min_length = min(len(ds.data), len(lsasm_words))
+    # If there are many differences, suggest the sequences might be entirely different
+    if match_percentage < 50:
+        print("\nWARNING: Less than 50% of words match in the same positions.")
+        print("The DataSequence and SemanticModel may represent different text or be significantly out of alignment.")
 
-        # Print the first few position-specific differences
-        diff_count = 0
-        print("\nPosition-specific differences (same index, different word):")
-        for i in range(min_length):
-            if str(ds.data[i]).lower() != str(lsasm_words[i]).lower():
-                print(f"  Index {i}: DataSequence='{ds.data[i]}', SemanticModel='{lsasm_words[i]}'")
-                diff_count += 1
-                if diff_count >= 10:  # Limit to first 10 differences
-                    print("  (Showing only first 10 differences)")
-                    break
-
-        if diff_count == 0:
-            print("  No position-specific differences found in the overlapping portion")
-
-        # Check for length differences
-        if len(ds.data) > len(lsasm_words):
-            print(f"\nExtra positions in DataSequence (showing first 5):")
-            for i in range(len(lsasm_words), min(len(ds.data), len(lsasm_words) + 5)):
-                print(f"  Index {i}: '{ds.data[i]}'")
-        elif len(lsasm_words) > len(ds.data):
-            print(f"\nExtra positions in SemanticModel (showing first 5):")
-            for i in range(len(ds.data), min(len(lsasm_words), len(ds.data) + 5)):
-                print(f"  Index {i}: '{lsasm_words[i]}'")
-
-        # Create adjusted data array
-        min_length = min(len(ds.data), lsasm.data.shape[0])
-        adjusted_data = lsasm.data[:min_length]
-        print(f"\nTruncating to {min_length} vectors to match")
-    else:
-        adjusted_data = lsasm.data
+    # Create adjusted data array by truncating the longer one
+    min_length = min(len(ds.data), lsasm.data.shape[0])
+    adjusted_data = lsasm.data[:min_length]
 
     # Create new DataSequence with the adjusted embedding data
     return DataSequence(adjusted_data, ds.split_inds, ds.data_times, ds.tr_times)
