@@ -79,7 +79,9 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def make_semantic_model(ds: DataSequence, lsasm, size):
+def make_semantic_model(ds: DataSequence, lsasms, sizes):
+    lsasm = lsasms[0]
+    size = sizes[0]
     print(
         f"DataSequence data shape: {ds.data.shape if hasattr(ds.data, 'shape') else 'not a numpy array, length=' + str(len(ds.data))}")
     print(f"Semantic model data shape: {lsasm.data.shape}")
