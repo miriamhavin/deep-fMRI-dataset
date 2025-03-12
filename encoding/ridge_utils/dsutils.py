@@ -79,6 +79,93 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
 
+def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
+    """
+    Creates contextual vectors by maintaining word order and processing them sequentially
+
+    Parameters:
+    -----------
+    ds : DataSequence
+        datasequence to operate on
+    lsasms : list
+        semantic models to use
+    sizes : list
+        sizes of resulting vectors from each semantic model
+
+    Returns:
+    --------
+    DataSequence
+        A new DataSequence with contextual vectors
+    """
+    print("Starting make_contextual_vector_model")
+    print(f"Number of words in DataSequence: {len(ds.data)}")
+    print(f"Number of semantic models: {len(lsasms)}")
+    print(f"Sizes for each model: {sizes}")
+    print(f"Total vector size: {sum(sizes)}")
+
+    newdata = []
+    num_lsasms = len(lsasms)
+
+    # Verify that we have the same number of models as sizes
+    if num_lsasms != len(sizes):
+        print("[ERROR] Number of models does not match number of sizes!")
+        raise ValueError("Number of semantic models must match number of sizes")
+
+    # Process words in order
+    missing_words_count = 0
+    for i in range(len(ds.data)):
+        word = ds.data[i]
+        context_vector = np.zeros(sum(sizes))  # Initialize with zeros for the total size
+
+        if i % 100 == 0:
+            print(f"Processing word {i}/{len(ds.data)}: '{word}'")
+
+        current_pos = 0
+        for j in range(num_lsasms):
+            lsasm = lsasms[j]
+            size = sizes[j]
+
+            try:
+                # Get vector for current word from the semantic model
+                word_vector = lsasm[str.encode(word.lower())]
+
+                # Place it at the correct position in the context vector
+                context_vector[current_pos:current_pos + size] = word_vector
+
+                if i % 100 == 0:
+                    print(f"  - Model {j}: Word found, vector shape: {word_vector.shape}")
+            except KeyError:
+                # If word not found, leave zeros in that position
+                missing_words_count += 1
+                if i % 100 == 0:
+                    print(f"  - Model {j}: Word '{word}' not found in model {j}")
+
+            current_pos += size
+
+        newdata.append(context_vector)
+
+        # Print a sample of the first vector to verify structure
+        if i == 0:
+            print(f"First context vector shape: {context_vector.shape}")
+            print(f"First few elements: {context_vector[:10]}")
+            print(f"Last few elements: {context_vector[-10:]}")
+
+    print(f"Processing complete. Total words: {len(ds.data)}")
+    print(f"Words missing from at least one model: {missing_words_count}")
+    print(f"Final data shape: {np.array(newdata).shape}")
+
+    # Create new DataSequence with the contextual vectors
+    result = DataSequence(np.array(newdata), ds.split_inds, ds.data_times, ds.tr_times)
+
+    print("Created new DataSequence")
+    print(f"New DataSequence shape: {result.data.shape}")
+    print(f"Split indices: {result.split_inds}")
+    print(f"Data times length: {len(result.data_times) if result.data_times is not None else 'None'}")
+    print(f"TR times length: {len(result.tr_times) if result.tr_times is not None else 'None'}")
+
+    return result
+
+
 def make_semantic_model(ds: DataSequence, lsasms, sizes):
     """
     ds
