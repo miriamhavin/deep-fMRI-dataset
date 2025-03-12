@@ -131,9 +131,15 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
     min_length = min(len(ds.data), lsasm.data.shape[0])
     adjusted_data = lsasm.data[:min_length]
 
+    # Print final dimensions
+    print(f"\nFinal dimensions:")
+    print(f"  Original DataSequence length: {len(ds.data)}")
+    print(f"  Original SemanticModel vectors: {lsasm.data.shape[0]}")
+    print(f"  Adjusted vector count: {adjusted_data.shape[0]}")
+    print(f"  Vector dimension: {adjusted_data.shape[1]}")
+
     # Create new DataSequence with the adjusted embedding data
     return DataSequence(adjusted_data, ds.split_inds, ds.data_times, ds.tr_times)
-
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
     """
