@@ -84,21 +84,8 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
     Creates a new DataSequence with embeddings directly from the semantic model,
     and handles mismatches by inserting zero vectors as needed.
     """
-    # Print basic dimensions
-    print(f"DataSequence length: {len(ds.data)}")
-    print(f"Semantic model vectors: {lsasm.data.shape[0]}")
-    print(f"Vector dimension: {lsasm.data.shape[1]}")
-
-    # Check if dimensions align
-    if len(ds.data) != lsasm.data.shape[0]:
-        print(
-            f"WARNING: Mismatch between DataSequence length ({len(ds.data)}) and semantic model vectors ({lsasm.data.shape[0]})")
-
     # Convert semantic model vocab to list if it's not already
     lsasm_words = list(lsasm.vocab) if hasattr(lsasm, 'vocab') else []
-
-    # Check word ordering
-    print("\nVerifying word order consistency...")
 
     # Determine the length to check
     min_length = min(len(ds.data), len(lsasm_words))
@@ -121,11 +108,6 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
     print(f"\nOrder match summary:")
     print(f"  Words in same position: {matching_count} out of {min_length} ({match_percentage:.2f}%)")
     print(f"  Total position mismatches: {len(diff_indices)}")
-
-    # If there are many differences, suggest the sequences might be entirely different
-    if match_percentage < 50:
-        print("\nWARNING: Less than 50% of words match in the same positions.")
-        print("The DataSequence and SemanticModel may represent different text or be significantly out of alignment.")
 
     # Handle mismatches by creating a new data array with zeros inserted
     zero_vectors_added = 0
@@ -191,8 +173,6 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
     print(f"\nFinal dimensions:")
     print(f"  Original DataSequence length: {len(ds.data)}")
     print(f"  Original SemanticModel vectors: {lsasm.data.shape[0]}")
-    print(f"  Adjusted vector count: {adjusted_data.shape[0]}")
-    print(f"  Vector dimension: {adjusted_data.shape[1]}")
     print(f"  Total zero vectors added: {zero_vectors_added}")
 
     # Create new DataSequence with the adjusted embedding data
