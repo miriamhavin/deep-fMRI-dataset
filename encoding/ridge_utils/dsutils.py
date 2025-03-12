@@ -82,7 +82,7 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
 def make_semantic_model(ds: DataSequence, lsasm, size):
     """
     Creates a new DataSequence with embeddings directly from the semantic model,
-    and compares word differences.
+    and performs detailed comparison of word differences.
     """
     # Print basic dimensions
     print(f"DataSequence length: {len(ds.data)}")
@@ -100,40 +100,60 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
         # Convert semantic model vocab to list if it's not already
         lsasm_words = list(lsasm.vocab) if hasattr(lsasm, 'vocab') else []
 
-        # Determine the minimum length for comparison
-        min_length = min(len(ds.data), len(lsasm_words))
-        max_length = max(len(ds.data), len(lsasm_words))
+        # Create sets of words for comparison
+        ds_words_set = set(str(w).lower() for w in ds.data)
+        lsasm_words_set = set(str(w).lower() for w in lsasm_words)
 
-        # Print the first few differences
+        # Find words that are only in one set
+        only_in_ds = ds_words_set - lsasm_words_set
+        only_in_lsasm = lsasm_words_set - ds_words_set
+
+        # Print summary statistics
+        print(f"\nWords only in DataSequence: {len(only_in_ds)}")
+        print(f"Words only in SemanticModel: {len(only_in_lsasm)}")
+
+        # Show some examples from each
+        if only_in_ds:
+            print("\nSample words only in DataSequence (max 10):")
+            for w in list(only_in_ds)[:10]:
+                print(f"  '{w}'")
+
+        if only_in_lsasm:
+            print("\nSample words only in SemanticModel (max 10):")
+            for w in list(only_in_lsasm)[:10]:
+                print(f"  '{w}'")
+
+        # Determine the minimum length for sequence comparison
+        min_length = min(len(ds.data), len(lsasm_words))
+
+        # Print the first few position-specific differences
         diff_count = 0
+        print("\nPosition-specific differences (same index, different word):")
         for i in range(min_length):
             if str(ds.data[i]).lower() != str(lsasm_words[i]).lower():
-                print(f"Difference at index {i}:")
-                print(f"  DataSequence: '{ds.data[i]}'")
-                print(f"  SemanticModel: '{lsasm_words[i]}'")
+                print(f"  Index {i}: DataSequence='{ds.data[i]}', SemanticModel='{lsasm_words[i]}'")
                 diff_count += 1
                 if diff_count >= 10:  # Limit to first 10 differences
-                    print("(Showing only first 10 differences)")
+                    print("  (Showing only first 10 differences)")
                     break
+
+        if diff_count == 0:
+            print("  No position-specific differences found in the overlapping portion")
 
         # Check for length differences
         if len(ds.data) > len(lsasm_words):
-            print(f"\nExtra words in DataSequence (showing first 5):")
+            print(f"\nExtra positions in DataSequence (showing first 5):")
             for i in range(len(lsasm_words), min(len(ds.data), len(lsasm_words) + 5)):
                 print(f"  Index {i}: '{ds.data[i]}'")
         elif len(lsasm_words) > len(ds.data):
-            print(f"\nExtra words in SemanticModel (showing first 5):")
+            print(f"\nExtra positions in SemanticModel (showing first 5):")
             for i in range(len(ds.data), min(len(lsasm_words), len(ds.data) + 5)):
                 print(f"  Index {i}: '{lsasm_words[i]}'")
-
-        print(f"\nTotal words in DataSequence: {len(ds.data)}")
-        print(f"Total words in SemanticModel: {len(lsasm_words)}")
-        print(f"Difference in word count: {abs(len(ds.data) - len(lsasm_words))}")
 
         # Create adjusted data array
         min_length = min(len(ds.data), lsasm.data.shape[0])
         adjusted_data = lsasm.data[:min_length]
-        print(f"Truncating to {min_length} vectors to match")
+        print(f"\nTruncating to {min_length} vectors to match")
     else:
         adjusted_data = lsasm.data
 
