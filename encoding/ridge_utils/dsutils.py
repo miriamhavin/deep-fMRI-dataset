@@ -82,7 +82,7 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
 def make_semantic_model(ds: DataSequence, lsasm, size):
     """
     Creates a new DataSequence with embeddings directly from the semantic model,
-    and verifies that word ordering matches between datasets.
+    and handles mismatches by inserting zero vectors as needed.
     """
     # Print basic dimensions
     print(f"DataSequence length: {len(ds.data)}")
@@ -115,7 +115,7 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
             matching_count += 1
         else:
             diff_indices.append(i)
-            # Only collect up to 10 differences
+
     # Print summary statistics
     match_percentage = (matching_count / min_length) * 100 if min_length > 0 else 0
     print(f"\nOrder match summary:")
@@ -127,9 +127,65 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
         print("\nWARNING: Less than 50% of words match in the same positions.")
         print("The DataSequence and SemanticModel may represent different text or be significantly out of alignment.")
 
-    # Create adjusted data array by truncating the longer one
-    min_length = min(len(ds.data), lsasm.data.shape[0])
-    adjusted_data = lsasm.data[:min_length]
+    # Handle mismatches by creating a new data array with zeros inserted
+    zero_vectors_added = 0
+
+    # Create a new array for adjusted data
+    if len(ds.data) > lsasm.data.shape[0]:
+        # DataSequence is longer - add zero vectors to match semantic model
+        adjusted_data = np.zeros((len(ds.data), lsasm.data.shape[1]))
+
+        # Copy existing vectors and add zeros for missing ones
+        copy_len = min(len(ds.data), lsasm.data.shape[0])
+        adjusted_data[:copy_len] = lsasm.data[:copy_len]
+        zero_vectors_added = len(ds.data) - lsasm.data.shape[0]
+        print(f"Added {zero_vectors_added} zero vectors at the end to match DataSequence length")
+
+    elif len(ds.data) < lsasm.data.shape[0]:
+        # SemanticModel is longer - truncate it
+        adjusted_data = lsasm.data[:len(ds.data)]
+        print(f"Truncated {lsasm.data.shape[0] - len(ds.data)} vectors from SemanticModel")
+
+    else:
+        # Same length, no adjustment needed
+        adjusted_data = lsasm.data
+
+    # Handle middle mismatches if alignment is good enough (over 70% match)
+    if match_percentage >= 70 and diff_indices:
+        print(f"Attempting to fix {len(diff_indices)} mismatches by inserting zero vectors...")
+
+        # Create a new array with potential extra space
+        potential_zeros = min(20, len(diff_indices))  # Limit potential inserts to 20
+        new_data = np.zeros((adjusted_data.shape[0] + potential_zeros, adjusted_data.shape[1]))
+
+        # Track shifts
+        shift = 0
+        insert_count = 0
+
+        for i in range(adjusted_data.shape[0]):
+            if i < len(diff_indices) and i + shift == diff_indices[i]:
+                # Insert a zero vector at mismatch position
+                new_data[i + shift] = np.zeros(adjusted_data.shape[1])
+                shift += 1
+                insert_count += 1
+
+                # Copy the actual data after the zero
+                new_data[i + shift] = adjusted_data[i]
+
+                # Check if insertion helped
+                if i + 1 < min_length:
+                    ds_word = str(ds.data[i + shift]).lower()
+                    lsasm_word = str(lsasm_words[i]).lower()
+                    if ds_word == lsasm_word:
+                        print(f"Successfully aligned at index {i + shift} after inserting zero")
+            else:
+                # Copy data normally
+                new_data[i + shift] = adjusted_data[i]
+
+        if insert_count > 0:
+            adjusted_data = new_data[:adjusted_data.shape[0] + insert_count]
+            zero_vectors_added += insert_count
+            print(f"Inserted {insert_count} zero vectors in the middle to fix alignment")
 
     # Print final dimensions
     print(f"\nFinal dimensions:")
@@ -137,9 +193,11 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
     print(f"  Original SemanticModel vectors: {lsasm.data.shape[0]}")
     print(f"  Adjusted vector count: {adjusted_data.shape[0]}")
     print(f"  Vector dimension: {adjusted_data.shape[1]}")
+    print(f"  Total zero vectors added: {zero_vectors_added}")
 
     # Create new DataSequence with the adjusted embedding data
-    return DataSequence(lsasm.data, ds.split_inds, ds.data_times, ds.tr_times)
+    return DataSequence(adjusted_data, ds.split_inds, ds.data_times, ds.tr_times)
+
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
     """
