@@ -79,28 +79,66 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
 
-def make_semantic_model(ds: DataSequence, lsasms, sizes):
-    lsasm = lsasms[0]
-    size = sizes[0]
-    print(
-        f"DataSequence data shape: {ds.data.shape if hasattr(ds.data, 'shape') else 'not a numpy array, length=' + str(len(ds.data))}")
-    print(f"Semantic model data shape: {lsasm.data.shape}")
-    print(f"Expected vector size: {size}")
-    print(f"DataSequence data times length: {len(ds.data_times)}")
-    print(f"DataSequence TR times length: {len(ds.tr_times)}")
+def make_semantic_model(ds: DataSequence, lsasm, size):
+    """
+    Creates a new DataSequence with embeddings directly from the semantic model,
+    and compares word differences.
+    """
+    # Print basic dimensions
+    print(f"DataSequence length: {len(ds.data)}")
+    print(f"Semantic model vectors: {lsasm.data.shape[0]}")
+    print(f"Vector dimension: {lsasm.data.shape[1]}")
 
     # Check if dimensions align
     if len(ds.data) != lsasm.data.shape[0]:
         print(
             f"WARNING: Mismatch between DataSequence length ({len(ds.data)}) and semantic model vectors ({lsasm.data.shape[0]})")
 
-    if lsasm.data.shape[1] != size:
-        print(
-            f"WARNING: Mismatch between semantic model vector dimension ({lsasm.data.shape[1]}) and expected size ({size})")
+        # Compare the actual word lists to find differences
+        print("\nComparing word sequences...")
 
-    # Create new DataSequence with the embedding data
-    return DataSequence(lsasm.data, ds.split_inds, ds.data_times, ds.tr_times)
+        # Convert semantic model vocab to list if it's not already
+        lsasm_words = list(lsasm.vocab) if hasattr(lsasm, 'vocab') else []
 
+        # Determine the minimum length for comparison
+        min_length = min(len(ds.data), len(lsasm_words))
+        max_length = max(len(ds.data), len(lsasm_words))
+
+        # Print the first few differences
+        diff_count = 0
+        for i in range(min_length):
+            if str(ds.data[i]).lower() != str(lsasm_words[i]).lower():
+                print(f"Difference at index {i}:")
+                print(f"  DataSequence: '{ds.data[i]}'")
+                print(f"  SemanticModel: '{lsasm_words[i]}'")
+                diff_count += 1
+                if diff_count >= 10:  # Limit to first 10 differences
+                    print("(Showing only first 10 differences)")
+                    break
+
+        # Check for length differences
+        if len(ds.data) > len(lsasm_words):
+            print(f"\nExtra words in DataSequence (showing first 5):")
+            for i in range(len(lsasm_words), min(len(ds.data), len(lsasm_words) + 5)):
+                print(f"  Index {i}: '{ds.data[i]}'")
+        elif len(lsasm_words) > len(ds.data):
+            print(f"\nExtra words in SemanticModel (showing first 5):")
+            for i in range(len(ds.data), min(len(lsasm_words), len(ds.data) + 5)):
+                print(f"  Index {i}: '{lsasm_words[i]}'")
+
+        print(f"\nTotal words in DataSequence: {len(ds.data)}")
+        print(f"Total words in SemanticModel: {len(lsasm_words)}")
+        print(f"Difference in word count: {abs(len(ds.data) - len(lsasm_words))}")
+
+        # Create adjusted data array
+        min_length = min(len(ds.data), lsasm.data.shape[0])
+        adjusted_data = lsasm.data[:min_length]
+        print(f"Truncating to {min_length} vectors to match")
+    else:
+        adjusted_data = lsasm.data
+
+    # Create new DataSequence with the adjusted embedding data
+    return DataSequence(adjusted_data, ds.split_inds, ds.data_times, ds.tr_times)
 
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
