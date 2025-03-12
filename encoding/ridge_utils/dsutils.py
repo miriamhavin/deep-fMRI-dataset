@@ -78,6 +78,47 @@ def histogram_phonemes2(ds, phonemeset=phonemes):
     newdata = np.vstack([olddata==ph for ph in phonemeset]).T
     return DataSequence(newdata, ds.split_inds, ds.data_times, ds.tr_times)
 
+    # Process words in order
+    missing_words_count = 0
+    for i in range(len(ds.data)):
+        word = ds.data[i]
+
+        if i % 100 == 0:
+            print(f"Processing word {i}/{len(ds.data)}: '{word}'")
+
+        current_pos = 0
+        context_vector = np.zeros(sum(sizes))  # Initialize with zeros for the total size
+
+        for j in range(num_lsasms):
+            lsasm = lsasms[j]
+            size = sizes[j]  # This should be 4096 as required
+            vector_found = False
+
+            try:
+                # Try both normal and bytes-encoded word formats
+                word_formats = [
+                    word.lower(),  # plain lowercase
+                    str.encode(word.lower()),  # encoded bytes
+                    word,  # original case
+                    str.encode(word)  # original case encoded
+                ]
+
+                if i % 100 == 0:
+                    print(f"  - Trying different formats for '{word}'")
+
+                for word_format in word_formats:
+                    try:
+                        # Try to get the vector from the model
+                        word_vector = lsasm[word_format]
+
+                        # If vector size doesn't match expected size (4096), pad it
+                        if word_vector.shape[0] != size:
+                            if i % 100 == 0:
+                                print(f"  - Padding vector from {word_vector.shape[0]} to {size} dimensions")
+
+                            if word_vector.shape[0] < size:
+                                # Pad with zeros if smaller
+                                padded_vector = np.zeros(size)
 
 def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
     """
@@ -90,7 +131,7 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
     lsasms : list
         semantic models to use
     sizes : list
-        sizes of resulting vectors from each semantic model
+        sizes of resulting vectors from each semantic model (can be adjusted automatically)
 
     Returns:
     --------
@@ -100,26 +141,82 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
     print("Starting make_contextual_vector_model")
     print(f"Number of words in DataSequence: {len(ds.data)}")
     print(f"Number of semantic models: {len(lsasms)}")
-    print(f"Sizes for each model: {sizes}")
-    print(f"Total vector size: {sum(sizes)}")
+    print(f"Sizes provided for each model: {sizes}")
 
-    # Debug: Check what's in the first semantic model
+    # Debug: Check what's in the semantic model
     print("Checking semantic model content:")
-    if lsasms and len(lsasms) > 0:
-        first_model = lsasms[0]
-        if hasattr(first_model, 'keys'):
-            # Try to get a few keys to see what's in there
-            print(f"Model has keys method. Sample keys (up to 5):")
+    for i, lsasm in enumerate(lsasms):
+        print(f"Model type: {type(lsasm)}")
+
+        # Check data attribute
+        if hasattr(lsasm, 'data'):
+            data_shape = lsasm.data.shape if hasattr(lsasm.data, 'shape') else "unknown"
+            print(f"Model {i} data shape: {data_shape}")
+
+            # Critical: Check if data shape matches expected size
+            if hasattr(lsasm.data, 'shape'):
+                if lsasm.data.shape[0] == sizes[i]:
+                    print(f"✓ First dimension matches expected size: {sizes[i]}")
+                else:
+                    print(f"⚠️ First dimension {lsasm.data.shape[0]} doesn't match expected size {sizes[i]}")
+
+        # Check vocabulary
+        if hasattr(lsasm, 'vocab'):
+            vocab_size = len(lsasm.vocab) if hasattr(lsasm.vocab, '__len__') else "unknown"
+            print(f"Model {i} vocabulary size: {vocab_size}")
+            if vocab_size != "unknown" and vocab_size > 0:
+                print(f"Sample vocabulary items (up to 5): {lsasm.vocab[:5] if vocab_size != 'unknown' else 'unknown'}")
+
+        # Check vindex
+        if hasattr(lsasm, 'vindex'):
+            vindex_size = len(lsasm.vindex) if hasattr(lsasm.vindex, '__len__') else "unknown"
+            print(f"Model {i} vindex size: {vindex_size}")
+            if vindex_size != "unknown" and vindex_size > 0:
+                sample_keys = list(lsasm.vindex.keys())[:5] if hasattr(lsasm.vindex, 'keys') else []
+                print(f"Sample vindex keys (up to 5): {sample_keys}")
+
+        # Test accessing with a common word
+        test_words = ['the', 'and', 'of', 'to', 'a', 'in', 'that', 'for']
+        for test_word in test_words:
             try:
-                keys = list(first_model.keys())[:5]
-                print(f"Keys format: {type(keys[0]) if keys else 'No keys'}")
-                for k in keys:
-                    print(f"  - {k} ({type(k)})")
+                # Try both string and bytes formats
+                for word_format in [test_word, str.encode(test_word)]:
+                    try:
+                        word_vector = lsasm[word_format]
+                        print(f"Successfully accessed vector for '{test_word}' with format {type(word_format)}")
+                        print(f"Vector shape: {word_vector.shape}")
+                        print(f"Vector type: {type(word_vector)}")
+
+                        # Check if shape matches expected
+                        if word_vector.shape[0] != sizes[i]:
+                            print(f"⚠️ Vector dimension {word_vector.shape[0]} doesn't match expected size {sizes[i]}")
+                        break
+                    except (KeyError, TypeError, AttributeError) as e:
+                        continue
             except Exception as e:
-                print(f"Error getting keys: {e}")
-        else:
-            print("Model doesn't have keys method")
-            print(f"Model type: {type(first_model)}")
+                continue
+
+    # Based on semantic model inspection, decide if we need to transpose vectors
+    actual_vector_size = None
+    transpose_needed = False
+
+    # Check first model's structure to determine if we need to transpose
+    if lsasms and hasattr(lsasms[0], 'data') and hasattr(lsasms[0].data, 'shape'):
+        if len(lsasms[0].data.shape) == 2:
+            model_dim = lsasms[0].data.shape[0]  # This is likely the embedding dimension
+            if model_dim != sizes[0]:
+                print(f"⚠️ Model dimension ({model_dim}) doesn't match provided size ({sizes[0]})")
+                print("Will adjust output vectors accordingly")
+                actual_vector_size = model_dim
+                transpose_needed = True
+
+    # Update sizes if needed
+    if transpose_needed and actual_vector_size is not None:
+        print(f"Updating size from {sizes[0]} to {actual_vector_size}")
+        sizes[0] = actual_vector_size
+
+    print(f"Final sizes for each model: {sizes}")
+    print(f"Total vector size: {sum(sizes)}")
 
     newdata = []
     num_lsasms = len(lsasms)

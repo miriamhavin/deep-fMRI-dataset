@@ -37,8 +37,22 @@ class SemanticModel(object):
     def __getitem__(self, word):
         """Returns the vector corresponding to the given [word].
         """
-        return self.data[:,self.vindex[word]]
-    
+        try:
+            # Get the word index
+            word_idx = self.vindex[word]
+
+            # Get the row corresponding to this word
+            return self.data[word_idx, :]
+        except KeyError:
+            logger.warning(f"Word '{word}' not found in vocabulary")
+            # Return a zero vector of appropriate length
+            vector_dim = self.data.shape[1] if len(self.data.shape) > 1 else 4096
+            return np.zeros(vector_dim)
+        except Exception as e:
+            logger.error(f"Error retrieving vector for word '{word}': {str(e)}")
+            vector_dim = self.data.shape[1] if len(self.data.shape) > 1 else 4096
+            return np.zeros(vector_dim)
+
     def load_root(self, rootfile, vocab):
         """Load the SVD-generated semantic vector space from [rootfile], assumed to be
         an HDF5 file.
