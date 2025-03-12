@@ -127,10 +127,6 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
         print("\nWARNING: Less than 50% of words match in the same positions.")
         print("The DataSequence and SemanticModel may represent different text or be significantly out of alignment.")
 
-    # Create adjusted data array by truncating the longer one
-    min_length = min(len(ds.data), lsasm.data.shape[0])
-    adjusted_data = lsasm.data[:min_length]
-
     # Print final dimensions
     print(f"\nFinal dimensions:")
     print(f"  Original DataSequence length: {len(ds.data)}")
