@@ -89,39 +89,8 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
         list of sizes of resulting vectors from each semantic model
     """
     # Validate inputs
-    assert len(lsasms) == len(sizes), "Number of semantic models must match number of sizes"
-
-    newdata = []
-    num_lsasms = len(lsasms)
-
-    # Check expected dimensions for each semantic model
-    for j, lsasm in enumerate(lsasms):
-        expected_size = sizes[j]
-        actual_size = lsasm.data.shape[1] if hasattr(lsasm, 'data') and hasattr(lsasm.data, 'shape') else None
-        if actual_size and actual_size != expected_size:
-            print(f"Warning: Model {j} has dimension {actual_size} but expected {expected_size}")
-
-    for i in range(len(ds.data)):
-        v = np.array([], dtype=float)
-        for j in range(num_lsasms):
-            lsasm = lsasms[j]
-            size = sizes[j]
-            vector = lsasm.data[i]
-            if len(vector) != size:
-                print(f"Warning: Vector from model {j} has {len(vector)} dimensions, expected {size}")
-            print(f"accessing model {j} at index {i}: {lsasm.vocab[i]}")
-            v = np.concatenate((v, vector))
-
-        newdata.append(v)
-
-    # Verify final dimensions
-    result = np.array(newdata)
-    print(f"Final {result.shape[0]} vectors have {result.shape[1]} dimensions")
-    expected_feature_dim = sum(sizes)
-    if result.shape[1] != expected_feature_dim:
-        print(f"Warning: Final vectors have {result.shape[1]} dimensions, expected {expected_feature_dim}")
-
-    return DataSequence(result, ds.split_inds, ds.data_times, ds.tr_times)
+    lsasm = lsasms[0]
+    return DataSequence(lsasm.data, ds.split_inds, ds.data_times, ds.tr_times)
 
 
 def make_character_model(dss):
