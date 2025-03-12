@@ -102,39 +102,21 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
             print(f"Warning: Model {j} has dimension {actual_size} but expected {expected_size}")
 
     for i in range(len(ds.data)):
-        # Initialize v as numpy array with zeros
         v = np.array([], dtype=float)
-
         for j in range(num_lsasms):
             lsasm = lsasms[j]
             size = sizes[j]
-
-            try:
-                # Verify we're not exceeding bounds
-                if hasattr(lsasm, 'data') and i < lsasm.data.shape[0]:
-                    vector = lsasm.data[i]
-                    # Verify vector dimension matches expected size
-                    if len(vector) != size:
-                        print(f"Warning: Vector from model {j} has {len(vector)} dimensions, expected {size}")
-                        # Resize if needed (pad or truncate)
-                        if len(vector) < size:
-                            vector = np.pad(vector, (0, size - len(vector)))
-                        else:
-                            vector = vector[:size]
-                else:
-                    vector = np.zeros(size)
-            except (IndexError, ValueError, AttributeError) as e:
-                print(f"Error accessing model {j} at index {i}: {e}")
-                vector = np.zeros(size)
-
-            # Concatenate to v
+            vector = lsasm.data[i]
+            if len(vector) != size:
+                print(f"Warning: Vector from model {j} has {len(vector)} dimensions, expected {size}")
+            print(f"accessing model {j} at index {i}: {lsasm.vocab[i]}")
             v = np.concatenate((v, vector))
 
         newdata.append(v)
 
     # Verify final dimensions
     result = np.array(newdata)
-    print(f"Final vectors have {result.shape[1]} dimensions")
+    print(f"Final {result.shape[0]} vectors have {result.shape[1]} dimensions")
     expected_feature_dim = sum(sizes)
     if result.shape[1] != expected_feature_dim:
         print(f"Warning: Final vectors have {result.shape[1]} dimensions, expected {expected_feature_dim}")
