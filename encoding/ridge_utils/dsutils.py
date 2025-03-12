@@ -127,6 +127,10 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
         print("\nWARNING: Less than 50% of words match in the same positions.")
         print("The DataSequence and SemanticModel may represent different text or be significantly out of alignment.")
 
+    # Create adjusted data array by truncating the longer one
+    min_length = min(len(ds.data), lsasm.data.shape[0])
+    adjusted_data = lsasm.data[:min_length]
+
     # Print final dimensions
     print(f"\nFinal dimensions:")
     print(f"  Original DataSequence length: {len(ds.data)}")
@@ -135,7 +139,7 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
     print(f"  Vector dimension: {adjusted_data.shape[1]}")
 
     # Create new DataSequence with the adjusted embedding data
-    return DataSequence(adjusted_data, ds.split_inds, ds.data_times, ds.tr_times)
+    return DataSequence(lsasm.data, ds.split_inds, ds.data_times, ds.tr_times)
 def make_character_model(dss):
     """Make character indicator model for a dict of datasequences.
     """
