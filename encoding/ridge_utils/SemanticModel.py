@@ -123,26 +123,14 @@ class SemanticModel(object):
         with h5py.File(filename, 'r') as f:
             newsm = cls(None, None)
 
-            # Check the shape of embeddings
-            embeddings = f['embeddings'][:]
-            print(f"Original embeddings shape: {embeddings.shape}")
-
-            # IMPORTANT: Only transpose if needed
-            # If embeddings are (2020, 4096), don't transpose
-            # If embeddings are (4096, 2020), do transpose
-            if embeddings.shape[1] > embeddings.shape[0]:  # If more columns than rows
-                newsm.data = embeddings  # Don't transpose
-                print("Using embeddings without transpose")
-            else:
-                newsm.data = embeddings.T  # Transpose
-                print("Using transposed embeddings")
+            # Load embeddings without transposing
+            newsm.data = f['embeddings'][:]
 
             # Handle UTF-8 encoded variable-length strings
             if 'words' in f:
                 newsm.vocab = np.array([w.decode('utf-8') for w in f['words'][:]])
-                print(f"Loaded {len(newsm.vocab)} words in vocabulary")
 
-        logger.debug(f"Done loading file. Data shape: {newsm.data.shape}")
+        logger.debug("Done loading file..")
         return newsm
 
     def copy(self):
