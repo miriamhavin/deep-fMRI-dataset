@@ -109,12 +109,8 @@ def make_contextual_vector_model(ds: DataSequence, lsasms: list, sizes: list):
         first_model = lsasms[0]
         if hasattr(first_model, 'keys'):
             # Try to get a few keys to see what's in there
-            print(f"Model has keys method. Sample keys (up to 5):")
             try:
                 keys = list(first_model.keys())[:5]
-                print(f"Keys format: {type(keys[0]) if keys else 'No keys'}")
-                for k in keys:
-                    print(f"  - {k} ({type(k)})")
             except Exception as e:
                 print(f"Error getting keys: {e}")
         else:
