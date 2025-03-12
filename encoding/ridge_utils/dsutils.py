@@ -116,11 +116,6 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
         else:
             diff_indices.append(i)
             # Only collect up to 10 differences
-            if len(diff_indices) <= 10:
-                print(f"Order mismatch at index {i}:")
-                print(f"  DataSequence: '{ds.data[i]}'")
-                print(f"  SemanticModel: '{lsasm_words[i]}'")
-
     # Print summary statistics
     match_percentage = (matching_count / min_length) * 100 if min_length > 0 else 0
     print(f"\nOrder match summary:")
