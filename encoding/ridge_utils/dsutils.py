@@ -86,7 +86,6 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
         f"DataSequence data shape: {ds.data.shape if hasattr(ds.data, 'shape') else 'not a numpy array, length=' + str(len(ds.data))}")
     print(f"Semantic model data shape: {lsasm.data.shape}")
     print(f"Expected vector size: {size}")
-    print(f"DataSequence split indices: {ds.split_inds}")
     print(f"DataSequence data times length: {len(ds.data_times)}")
     print(f"DataSequence TR times length: {len(ds.tr_times)}")
 
