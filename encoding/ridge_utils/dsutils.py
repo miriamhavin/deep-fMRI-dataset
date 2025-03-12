@@ -134,6 +134,7 @@ def make_semantic_model(ds: DataSequence, lsasms, sizes):
 
     # Verify final dimensions
     result = np.array(newdata)
+    print(f"Final vectors have {result.shape[1]} dimensions")
     expected_feature_dim = sum(sizes)
     if result.shape[1] != expected_feature_dim:
         print(f"Warning: Final vectors have {result.shape[1]} dimensions, expected {expected_feature_dim}")
