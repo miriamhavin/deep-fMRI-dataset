@@ -14,7 +14,6 @@ class SemanticModel(object):
     vocab is a 1D list (or array) of words.
     data is a 2D array (features by words) of word-feature values.
     """
-
     def __init__(self, data, vocab):
         """Initializes a SemanticModel with the given [data] and [vocab].
         """
@@ -25,50 +24,20 @@ class SemanticModel(object):
         """Returns the number of dimensions in this model.
         """
         return self.data.shape
-
     ndim = property(get_ndim)
 
     def get_vindex(self):
         """Return {vocab: index} dictionary.
         """
         if "_vindex" not in dir(self):
-            self._vindex = dict([(v, i) for (i, v) in enumerate(self.vocab)])
+            self._vindex = dict([(v,i) for (i,v) in enumerate(self.vocab)])
         return self._vindex
-
     vindex = property(get_vindex)
 
     def __getitem__(self, word):
-        """Returns the vector corresponding to the given word.
-
-        Parameters:
-        -----------
-        word : str or bytes
-            The word to look up
-
-        Returns:
-        --------
-        numpy.ndarray
-            The embedding vector for the word
+        """Returns the vector corresponding to the given [word].
         """
-        try:
-            # Convert bytes to string if needed
-            if isinstance(word, bytes):
-                word = word.decode('utf-8')
-
-            # Get the word index
-            word_idx = self.vindex[word]
-
-            # Get the row corresponding to this word
-            return self.data[word_idx, :]
-        except KeyError:
-            logger.warning(f"Word '{word}' not found in vocabulary")
-            # Return a zero vector of appropriate length
-            vector_dim = self.data.shape[1] if self.data is not None and len(self.data.shape) > 1 else 4096
-            return np.zeros(vector_dim)
-        except Exception as e:
-            logger.error(f"Error retrieving vector for word '{word}': {str(e)}")
-            vector_dim = self.data.shape[1] if self.data is not None and len(self.data.shape) > 1 else 4096
-            return np.zeros(vector_dim)
+        return self.data[:,self.vindex[word]]
 
     def load_root(self, rootfile, vocab):
         """Load the SVD-generated semantic vector space from [rootfile], assumed to be
@@ -85,10 +54,10 @@ class SemanticModel(object):
         """
         vtfile = open(rootfile)
         nrows, ncols = map(int, vtfile.readline().split())
-        Vt = np.zeros((nrows, ncols))
+        Vt = np.zeros((nrows,ncols))
         nrows_done = 0
         for row in vtfile:
-            Vt[nrows_done, :] = map(float, row.split())
+            Vt[nrows_done,:] = map(float, row.split())
             nrows_done += 1
 
         self.data = Vt
@@ -100,19 +69,19 @@ class SemanticModel(object):
         """
         logger.debug("Restricting words by occurrence..")
         nwords = self.data.shape[1]
-        wordranks = np.argsort(np.argsort(self.data[0, :]))
-        goodwords = np.nonzero(np.logical_and((nwords - wordranks) > min_rank,
-                                              (nwords - wordranks) < max_rank))[0]
+        wordranks = np.argsort(np.argsort(self.data[0,:]))
+        goodwords = np.nonzero(np.logical_and((nwords-wordranks)>min_rank,
+                                              (nwords-wordranks)<max_rank))[0]
 
-        self.data = self.data[:, goodwords]
+        self.data = self.data[:,goodwords]
         self.vocab = [self.vocab[i] for i in goodwords]
         logger.debug("Done restricting words..")
 
     def pca_reduce(self, ndims):
         """Reduces the dimensionality of the vector-space using PCA.
         """
-        logger.debug("Reducing with PCA to %d dimensions" % ndims)
-        U, S, Vh = np.linalg.svd(self.data, full_matrices=False)
+        logger.debug("Reducing with PCA to %d dimensions"%ndims)
+        U,S,Vh = np.linalg.svd(self.data, full_matrices=False)
         self.data = np.dot(Vh[:ndims].T, np.diag(S[:ndims])).T
         logger.debug("Done with PCA..")
 
@@ -125,7 +94,7 @@ class SemanticModel(object):
         SemanticModels with the specified numbers of dimensions.
         """
         logger.debug("Reducing with PCA to fewer dimensions..")
-        U, S, Vh = np.linalg.svd(self.data, full_matrices=False)
+        U,S,Vh = np.linalg.svd(self.data, full_matrices=False)
         newmodels = []
         for nd in ndimlist:
             newmodel = SemanticModel()
@@ -134,110 +103,33 @@ class SemanticModel(object):
             newmodels.append(newmodel)
         return newmodels
 
-    def load(cls, filename):
-        """Loads a semantic model from an HDF5 file.
-
-        The file should contain:
-        - 'embeddings' dataset: 2D array (words x features)
-        - 'words' dataset: 1D array of word strings
-
-        Parameters:
-        -----------
-        filename : str
-            Path to the HDF5 file
-
-        Returns:
-        --------
-        SemanticModel
-            The loaded model
-        """
-        logger.debug(f"Loading file: {filename}")
-
-        try:
-            with h5py.File(filename, 'r') as f:
-                # Create new model
-                newsm = cls(None, None)
-
-                # Load embeddings
-                if 'embeddings' in f:
-                    newsm.data = f['embeddings'][:]
-                    logger.debug(f"Loaded embeddings with shape: {newsm.data.shape}")
-                else:
-                    logger.warning(f"No 'embeddings' dataset found in {filename}")
-
-                # Load vocabulary words
-                if 'words' in f:
-                    try:
-                        # Handle UTF-8 encoded strings
-                        newsm.vocab = np.array([
-                            w.decode('utf-8') if isinstance(w, bytes) else w
-                            for w in f['words'][:]
-                        ])
-                        logger.debug(f"Loaded vocabulary with {len(newsm.vocab)} words")
-                    except Exception as e:
-                        logger.error(f"Error decoding words: {e}")
-                        newsm.vocab = f['words'][:]
-                else:
-                    logger.warning(f"No 'words' dataset found in {filename}")
-
-                # Verify data consistency
-                if newsm.data is not None and newsm.vocab is not None:
-                    if newsm.data.shape[0] != len(newsm.vocab):
-                        logger.warning(
-                            f"Mismatch between number of embeddings ({newsm.data.shape[0]}) "
-                            f"and vocabulary size ({len(newsm.vocab)})"
-                        )
-        except Exception as e:
-            logger.error(f"Error loading file {filename}: {e}")
-            try:
-                # Fallback to using pytables
-                logger.debug("Trying to load using pytables as fallback")
-                shf = tables.open_file(filename)
-                newsm = cls(None, None)
-
-                if "/data" in shf:
-                    newsm.data = shf.get_node("/data").read()
-                if "/vocab" in shf:
-                    newsm.vocab = list(shf.get_node("/vocab").read())
-
-                shf.close()
-            except Exception as e2:
-                logger.error(f"Fallback loading also failed: {e2}")
-                raise RuntimeError(f"Failed to load semantic model from {filename}")
-
-        logger.debug("File loaded successfully")
-        return newsm
-
     def save(self, filename):
-        """Saves this semantic model to an HDF5 file.
-
-        Parameters:
-        -----------
-        filename : str
-            Path where to save the file
+        """Saves this semantic model at the given filename.
         """
-        logger.debug(f"Saving file: {filename}")
+        logger.debug("Saving file: %s"%filename)
+        shf = tables.open_file(filename, mode="w", title="SemanticModel")
+        shf.createArray("/", "data", self.data)
+        shf.createArray("/", "vocab", self.vocab)
+        shf.close()
+        logger.debug("Done saving file..")
 
-        try:
-            with h5py.File(filename, 'w') as f:
-                # Save embeddings
-                if self.data is not None:
-                    f.create_dataset('embeddings', data=self.data)
+    @classmethod
+    def load(cls, filename):
+        """Loads a semantic model from the given filename.
+        """
+        logger.debug("Loading file: %s" % filename)
 
-                # Save words
-                if self.vocab is not None:
-                    dt = h5py.special_dtype(vlen=str)
-                    # Convert words to UTF-8 encoded strings
-                    encoded_words = [
-                        w.encode('utf-8') if isinstance(w, str) else str(w).encode('utf-8')
-                        for w in self.vocab
-                    ]
-                    f.create_dataset('words', data=encoded_words, dtype=dt)
+        # Use h5py instead of tables to match how the file was created
+        with h5py.File(filename, 'r') as f:
+            newsm = cls(None, None)
+            newsm.data = f['embeddings'][:].T
 
-            logger.debug("File saved successfully")
-        except Exception as e:
-            logger.error(f"Error saving file {filename}: {e}")
-            raise
+            # Handle UTF-8 encoded variable-length strings
+            if 'words' in f:
+                newsm.vocab = np.array([w.decode('utf-8') for w in f['words'][:]])
+
+        logger.debug("Done loading file..")
+        return newsm
 
     def copy(self):
         """Returns a copy of this model.
