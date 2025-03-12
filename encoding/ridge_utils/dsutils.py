@@ -133,7 +133,7 @@ def make_semantic_model(ds: DataSequence, lsasm, size):
         adjusted_data = lsasm.data
 
     # Handle middle mismatches if alignment is good enough (over 70% match)
-    if match_percentage >= 70 and diff_indices:
+    if diff_indices:
         print(f"Attempting to fix {len(diff_indices)} mismatches by inserting zero vectors...")
 
         # Create a new array with potential extra space
