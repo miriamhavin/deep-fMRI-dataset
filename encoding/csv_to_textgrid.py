@@ -47,7 +47,7 @@ def csv_to_textgrid(data_dir, textgrid_dir):
 
 
 # Example usage
-DATA_DIR = "C:/Users/owner/PycharmProjects/deep-fMRI-dataset/em_data"
+DATA_DIR = "C:/Users/owner/PycharmProjects/deep-fMRI-dataset/encoding/data"
 TEXTGRID_DIR = join(DATA_DIR, "TextGrids")
 CSV_DIR = join(DATA_DIR, "CSV")
 csv_to_textgrid(CSV_DIR, TEXTGRID_DIR)
