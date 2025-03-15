@@ -21,7 +21,8 @@
       <paths name="miriam1234@puffin-02.cs.huji.ac.il:22 password">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/deep-fMRI-dataset" local="$PROJECT_DIR$" web="/" />
+            <mapping local="" />
           </mappings>
         </serverdata>
       </paths>

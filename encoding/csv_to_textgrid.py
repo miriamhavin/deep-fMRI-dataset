@@ -45,31 +45,11 @@ def csv_to_textgrid(data_dir, textgrid_dir):
                         tgfile.write(f'            xmax = {end}\n')
                         tgfile.write(f'            text = "{word}"\n')
 
+
 # Example usage
 DATA_DIR = "C:/Users/owner/PycharmProjects/deep-fMRI-dataset/em_data"
-# TEXTGRID_DIR = join(DATA_DIR, "TextGrids")
-# CSV_DIR = join(DATA_DIR, "timing")
-# csv_to_textgrid(CSV_DIR, TEXTGRID_DIR)
+TEXTGRID_DIR = join(DATA_DIR, "TextGrids")
+CSV_DIR = join(DATA_DIR, "CSV")
+csv_to_textgrid(CSV_DIR, TEXTGRID_DIR)
 
 
-import h5py
-
-def print_structure(hdf5_file, indent=0):
-    """
-    Recursively prints the groups and datasets in an HDF5 file.
-    """
-    for key in hdf5_file.keys():
-        item = hdf5_file[key]
-        print('    ' * indent + key)
-        if isinstance(item, h5py.Dataset):  # If it's a Dataset, print its shape
-            print('    ' * (indent + 1) + f"Dataset: {item.shape}, dtype: {item.dtype}")
-        elif isinstance(item, h5py.Group):  # If it's a Group, do a recursive call
-            print_structure(item, indent + 1)
-
-# Path to your HDF5 file
-file_path = 'C:/Users/owner/PycharmProjects/deep-fMRI-dataset/em_data/english1000sm.hf5'
-
-# Open the HDF5 file
-with h5py.File(file_path, 'r') as file:
-    print("Structure of the HDF5 file:")
-    print_structure(file)
