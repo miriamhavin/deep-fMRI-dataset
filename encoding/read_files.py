@@ -14,34 +14,67 @@ corrs = np.load(file_path + 'corrs.npz')
 valinds = np.load(file_path + 'valinds.npz')
 valphas = np.load(file_path + 'valphas.npz')
 
-# To see what arrays are stored in each file
-print('bscorrs contains:', list(bscorrs.keys()))
-print('corrs contains:', list(corrs.keys()))
-print('valinds contains:', list(valinds.keys()))
-print('valphas contains:', list(valphas.keys()))
+# Files and their arrays
+files = {
+    'bscorrs': bscorrs,
+    'corrs': corrs,
+    'valinds': valinds,
+    'valphas': valphas
+}
 
-# To access a specific array from a file (using 'arr_0' as an example, adjust based on actual keys)
-# This shows the shape and first few elements
-if 'arr_0' in bscorrs:
-    print('bscorrs shape:', bscorrs['arr_0'].shape)
-    print('bscorrs first few values:', bscorrs['arr_0'].flatten()[:5])
+# Examine all files and their contents
+print(f"\n===== EXPLORING DATA FOR SUBJECT: {subject} =====\n")
 
-if 'arr_0' in corrs:
-    print('corrs shape:', corrs['arr_0'].shape)
-    print('corrs first few values:', corrs['arr_0'].flatten()[:5])
+for file_name, file_data in files.items():
+    print(f"\n----- File: {file_name}.npz -----")
 
-# Check for NaN and infinite values
-if 'arr_0' in bscorrs:
-    corr_values = bscorrs['arr_0']
-    print('Number of NaN values in corrs:', np.isnan(corr_values).sum())
-    print('Number of -inf values in corrs:', np.isneginf(corr_values).sum())
-    print('Number of +inf values in corrs:', np.isposinf(corr_values).sum())
+    # List all arrays in the file
+    array_keys = list(file_data.keys())
+    print(f"Contains {len(array_keys)} arrays: {array_keys}")
 
-    # Remove -inf values
-    corr_values = corr_values[~np.isneginf(corr_values)]
+    # Examine each array in detail
+    for key in array_keys:
+        array = file_data[key]
+        print(f"\n  Array: {key}")
+        print(f"  Shape: {array.shape}")
+        print(f"  Data type: {array.dtype}")
 
-    # Calculate some basic statistics
-    print('Mean correlation:', np.mean(corr_values))
-    print('Median correlation:', np.median(corr_values))
-    print('Max correlation:', np.max(corr_values))
-    print('Min correlation:', np.min(corr_values))
+        # Get array statistics
+        if array.size > 0:  # Only if array is not empty
+            flat_array = array.flatten()
+
+            # Count special values
+            nan_count = np.isnan(flat_array).sum()
+            neginf_count = np.isneginf(flat_array).sum()
+            posinf_count = np.isposinf(flat_array).sum()
+
+            print(f"  Special values:")
+            print(f"    NaN: {nan_count} ({nan_count / flat_array.size:.2%} of elements)")
+            print(f"    -Inf: {neginf_count} ({neginf_count / flat_array.size:.2%} of elements)")
+            print(f"    +Inf: {posinf_count} ({posinf_count / flat_array.size:.2%} of elements)")
+
+            # Filter out non-finite values for statistics
+            valid_values = flat_array[np.isfinite(flat_array)]
+            if valid_values.size > 0:
+                print(f"  Statistics (excluding non-finite values):")
+                print(f"    Min: {np.min(valid_values)}")
+                print(f"    Max: {np.max(valid_values)}")
+                print(f"    Mean: {np.mean(valid_values)}")
+                print(f"    Median: {np.median(valid_values)}")
+                print(f"    Std Dev: {np.std(valid_values)}")
+
+                # Show histogram-like distribution summary
+                if valid_values.size > 10:  # Only if we have enough values
+                    percentiles = [0, 10, 25, 50, 75, 90, 100]
+                    percentile_values = np.percentile(valid_values, percentiles)
+                    print(f"  Value distribution:")
+                    for p, v in zip(percentiles, percentile_values):
+                        print(f"    {p}th percentile: {v}")
+
+            # Show a few sample values
+            sample_size = min(5, flat_array.size)
+            if sample_size > 0:
+                print(f"  Sample values (first {sample_size}):")
+                print(f"    {flat_array[:sample_size]}")
+
+print("\n===== EXPLORATION COMPLETE =====")

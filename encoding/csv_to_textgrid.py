@@ -33,21 +33,29 @@ def csv_to_textgrid(data_dir, textgrid_dir):
 
                 # Write the TextGrid file with the computed xmin and xmax
                 with open(textgrid_file_path, 'w') as tgfile:
-                    tgfile.write('File type = "ooTextFile"\nObject class = "TextGrid"\n')
+                    tgfile.write('File type = "ooTextFile"\nObject class = "TextGrid"\n\n')
                     tgfile.write(f'xmin = {min_time}\nxmax = {max_time}\n')
                     tgfile.write('tiers? <exists>\nsize = 1\nitem []:\n')
                     tgfile.write('    item [1]:\n        class = "IntervalTier"\n')
                     tgfile.write(f'        name = "words"\n        xmin = {min_time}\n        xmax = {max_time}\n')
                     tgfile.write(f'        intervals: size = {len(intervals)}\n')
-                    for index, (word, start, end) in enumerate(intervals, start=1):
-                        tgfile.write(f'        intervals [{index}]:\n')
-                        tgfile.write(f'            xmin = {start}\n')
-                        tgfile.write(f'            xmax = {end}\n')
-                        tgfile.write(f'            text = "{word}"\n')
+                    for index, row in enumerate(intervals, start=1):
+                        if len(row) >= 3:
+                            word = row[0]
+                            start = row[1]
+                            end = row[2]
+                            # Handle optional 'correct' value if present
+                            correct = row[3] if len(row) > 3 else "undefined"
+                            tgfile.write(f'        intervals [{index}]:\n')
+                            tgfile.write(f'            xmin = {start}\n')
+                            tgfile.write(f'            xmax = {end}\n')
+                            tgfile.write(f'            text = "{word}"\n')
+                        else:
+                            print(f"Skipping incomplete row: {row}")
 
 
 # Example usage
-DATA_DIR = "C:/Users/owner/PycharmProjects/deep-fMRI-dataset/encoding/data"
+DATA_DIR = "/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/encoding/data/"
 TEXTGRID_DIR = join(DATA_DIR, "TextGrids")
 CSV_DIR = join(DATA_DIR, "CSV")
 csv_to_textgrid(CSV_DIR, TEXTGRID_DIR)
