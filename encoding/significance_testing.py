@@ -181,10 +181,10 @@ def fdr_qvalues(pvalues, lam=0.5):
     p_less = (np.arange(m)+1) / m
     pfdr = pi_0 * sortpvals / (p_less * (1 - (1-sortpvals)**m))
     print(pfdr)
-    qvals = np.zeros((m,))
-    qvals[m-1] = pfdr[m-1]
+    qvals = np.zeros((int(m),))
+    qvals[int(m)-1] = pfdr[int(m)-1]
     for ii in range(2, int(m)+1):
-        qvals[m-ii] = min(pfdr[m-ii], qvals[m-ii+1])
+        qvals[int(m)-ii] = min(pfdr[int(m)-ii], qvals[int(m)-ii+1])
 
     return qvals[psoriginds]
 
@@ -197,7 +197,7 @@ def fdr_correct(pval, thres):
    # remove NaNs
    p = pval[np.nonzero(np.isnan(pval)==False)[0]]
    p = np.sort(p)
-   V = np.float(len(p))
+   V = float(len(p))
    I = np.arange(V) + 1
 
    cVID = 1
@@ -215,4 +215,3 @@ def fdr_correct(pval, thres):
        pN = -np.inf
 
    return pID, pN
-

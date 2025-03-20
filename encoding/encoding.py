@@ -95,14 +95,116 @@ if __name__ == "__main__":
 		print("Error: One of the response arrays is empty.")
 		sys.exit(1)
 
-	wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
-		delRstim, zRresp_trimmed, delPstim, zPresp_trimmed, alphas, nboots, chunklen,
-		nchunks, singcutoff=singcutoff, single_alpha=single_alpha,
-		use_corr=use_corr)
+	#wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
+	#	delRstim, zRresp_trimmed, delPstim, zPresp_trimmed, alphas, nboots, chunklen,
+	#	nchunks, singcutoff=singcutoff, single_alpha=single_alpha,
+	#	use_corr=use_corr)
 
 	# Save regression results.
-	np.savez("%s/corrs" % save_location, corrs)
-	np.savez("%s/valphas" % save_location, valphas)
-	np.savez("%s/bscorrs" % save_location, bscorrs)
-	np.savez("%s/valinds" % save_location, np.array(valinds))
-	print("Total r2: %d" % sum(corrs * np.abs(corrs)))
+	#np.savez("%s/weights" % save_location, wt)
+	#np.savez("%s/corrs" % save_location, corrs)
+	#np.savez("%s/valphas" % save_location, valphas)
+	#np.savez("%s/bscorrs" % save_location, bscorrs)
+	#np.savez("%s/valinds" % save_location, np.array(valinds))
+	#print("Total r2: %d" % sum(corrs * np.abs(corrs)))
+
+	from significance_testing import model_pvalue, permutation_test, mrsq, fdr_correct, fdr_qvalues
+
+
+	# Load your saved weights and correlations
+	weights = np.load(os.path.join(save_location, "weights.npz"))['arr_0']
+	corrs = np.load(os.path.join(save_location, "corrs.npz"))['arr_0']
+
+	# Load or reference your test stimuli and responses from the encoding script
+	# Assuming delPstim and zPresp_trimmed are available from your encoding script
+	test_stim = delPstim
+	test_resp = zPresp_trimmed
+
+	print(f"Testing {test_resp.shape[1]} voxels")
+
+	# Get predicted responses
+	predicted_resp = np.dot(test_stim, weights)
+	print(f"Predicted response shape: {predicted_resp.shape}")
+
+	# Fix the blocklen to be divisible by the number of time points
+	n_timepoints = test_resp.shape[0]  # 1057 in your case
+	print(f"Number of time points: {n_timepoints}")
+
+
+	# Choose a blocklen that divides evenly into n_timepoints
+	# Find the largest divisor of n_timepoints that is less than or equal to your desired blocklen
+	def find_largest_divisor(n, max_val=40):
+		for i in range(max_val, 0, -1):
+			if n % i == 0:
+				return i
+		return 1
+
+
+	blocklen = find_largest_divisor(n_timepoints, 40)
+	print(f"Using blocklen: {blocklen}")
+
+	# Now run the permutation test with the adjusted blocklen
+	pvals, perm_rsqs, real_rsqs = permutation_test(
+		test_resp, predicted_resp,
+		metric=lambda a, b: mrsq(a, b, corr_units=True),
+		blocklen=blocklen, nperms=1000)
+
+	# Correct for multiple comparisons
+	pID, pN = fdr_correct(pvals, thres=0.05)
+	print(f"FDR-corrected p-value threshold: {pID}")
+
+	# Find significant voxels
+	significant_voxels = np.where(pvals < pID)[0]
+	print(f"Number of significant voxels: {len(significant_voxels)}")
+	print(f"Percentage of significant voxels: {len(significant_voxels) / len(pvals) * 100:.2f}%")
+
+	# Option 2: Apply model_pvalue to each voxel (more computationally intensive)
+	# This calculates a separate bootstrap for each voxel
+	"""
+	bootstrap_pvals = []
+	parametric_pvals = []
+
+	# For computational efficiency, you may want to sample a subset of voxels
+	n_voxels = test_resp.shape[1]
+	for voxel_idx in range(n_voxels):
+	    if voxel_idx % 100 == 0:
+	        print(f"Testing voxel {voxel_idx}/{n_voxels}")
+
+	    voxel_weights = weights[:, voxel_idx]
+	    voxel_resp = test_resp[:, voxel_idx]
+
+	    bs_pval, p_pval = model_pvalue(voxel_weights, test_stim, voxel_resp, nboot=1000)
+	    bootstrap_pvals.append(bs_pval)
+	    parametric_pvals.append(p_pval)
+
+	bootstrap_pvals = np.array(bootstrap_pvals)
+	parametric_pvals = np.array(parametric_pvals)
+	"""
+
+	# Calculate q-values (alternative to FDR correction)
+	qvals = fdr_qvalues(pvals)
+	significant_qvals = np.where(qvals < 0.05)[0]
+	print(f"Number of significant voxels (q-values): {len(significant_qvals)}")
+
+	# Save results
+	np.savez(os.path.join(save_location, "pvals.npz"), pvals)
+	np.savez(os.path.join(save_location, "qvals.npz"), qvals)
+	np.savez(os.path.join(save_location, "significant_voxels.npz"), significant_voxels)
+
+	# Optionally, create a summary dictionary and save as JSON
+	import json
+
+	summary = {
+		"total_voxels": len(pvals),
+		"significant_voxels": len(significant_voxels),
+		"percentage_significant": len(significant_voxels) / len(pvals) * 100,
+		"fdr_threshold": float(pID),
+		"mean_correlation": float(np.mean(corrs)),
+		"max_correlation": float(np.max(corrs))
+	}
+
+	with open(os.path.join(save_location, "statistical_summary.json"), "w") as f:
+		json.dump(summary, f, indent=4)
+
+	print("Statistical testing complete. Results saved to:", save_location)
+

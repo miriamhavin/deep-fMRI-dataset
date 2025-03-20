@@ -71,6 +71,7 @@ def get_response(stories, subject):
 	stacked_data = np.vstack(responses)
 
 	# Handle outliers before z-scoring (robust approach)
+
 	for voxel in range(stacked_data.shape[1]):
 		voxel_data = stacked_data[:, voxel]
 		median = np.median(voxel_data)
@@ -91,6 +92,7 @@ def get_response(stories, subject):
 	z_scored_data = (stacked_data - means) / stds
 
 	return z_scored_data
+
 
 def flatten_data(data):
 	"""
