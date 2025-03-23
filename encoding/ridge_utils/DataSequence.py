@@ -5,7 +5,7 @@ from ridge_utils.interpdata import sincinterp2D, gabor_xfm2D, lanczosinterp2D
 class DataSequence(object):
     """DataSequence class provides a nice interface for handling data that is both continuous
     and discretely chunked. For example, semantic projections of speech stimuli must be
-    considered both at the level of single words (which are continuous throughout the stimulus)
+    considered both at the level of singlewords  (which are continuous throughout the stimulus)
     and at the level of TRs (which contain discrete chunks of words).
     """
     def __init__(self, data, split_inds, data_times=None, tr_times=None):

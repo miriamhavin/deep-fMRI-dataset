@@ -23,7 +23,7 @@ if __name__ == "__main__":
 	parser.add_argument("--ndelays", type=int, default=4)
 	parser.add_argument("--nboots", type=int, default=50)
 	parser.add_argument("--chunklen", type=int, default=40)
-	parser.add_argument("--nchunks", type=int, default=125)
+	parser.add_argument("--nchunks", type=int, default=50)
 	parser.add_argument("--singcutoff", type=float, default=1e-10)
 	parser.add_argument("-use_corr", action="store_true")
 	parser.add_argument("-single_alpha", action="store_true")
