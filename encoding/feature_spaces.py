@@ -167,7 +167,7 @@ def get_contextual_vectors(allstories):
 	embeddings = {}
 	for session in allstories:
 		print(session)
-		session_embedding = SemanticModel.load(join(EM_DATA_DIR, f"embeddings_mistral/embeddings_{session}.h5"))
+		session_embedding = SemanticModel.load(join(REPO_DIR, f"embeddings/embeddings_mistral/embeddings_{session}.h5"))
 		sm = make_semantic_model(wordseqs[session], session_embedding, 4096, session)
 		embeddings[session] = sm.data
 	return downsample_word_vectors(allstories, embeddings, wordseqs)
