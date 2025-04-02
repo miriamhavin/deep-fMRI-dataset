@@ -154,7 +154,7 @@ def get_eng1000_vectors(allstories):
 	Returns:
 		Dictionary of {story: downsampled vectors}
 	"""
-	eng1000 = SemanticModel.load(join(EM_DATA_DIR, "english1000sm.hf5"))
+	eng1000 = SemanticModel.load_eng1000(join(EM_DATA_DIR, "english1000sm.hf5"))
 	wordseqs = get_story_wordseqs(allstories)
 	vectors = {}
 	for story in allstories:
