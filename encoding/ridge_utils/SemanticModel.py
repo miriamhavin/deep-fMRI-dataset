@@ -133,6 +133,20 @@ class SemanticModel(object):
         logger.debug("Done loading file..")
         return newsm
 
+    @classmethod
+    def load_eng1000(cls, filename):
+        """Loads a semantic model from the given filename.
+        """
+        logger.debug("Loading file: %s"%filename)
+        shf = tables.open_file(filename)
+
+        newsm = cls(None, None)
+        newsm.data = shf.get_node("/data").read()
+        newsm.vocab = shf.get_node("/vocab").read()
+        shf.close()
+        logger.debug("Done loading file..")
+        return newsm
+
     def copy(self):
         """Returns a copy of this model.
         """
