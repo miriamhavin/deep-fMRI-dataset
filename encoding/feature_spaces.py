@@ -5,7 +5,7 @@ import json
 from os.path import join, dirname
 from ridge_utils.interpdata import lanczosinterp2D
 from ridge_utils.SemanticModel import SemanticModel
-from ridge_utils.dsutils import make_semantic_model, make_word_ds, make_phoneme_ds
+from ridge_utils.dsutils import make_semantic_model, make_word_ds, make_phoneme_ds, make_semantic_model_eng1000
 from ridge_utils.stimulus_utils import load_textgrids, load_simulated_trfiles
 
 from config import REPO_DIR, EM_DATA_DIR, DATA_DIR
@@ -158,7 +158,7 @@ def get_eng1000_vectors(allstories):
 	wordseqs = get_story_wordseqs(allstories)
 	vectors = {}
 	for story in allstories:
-		sm = make_semantic_model(wordseqs[story], [eng1000], [985])
+		sm = make_semantic_model_eng1000(wordseqs[story], [eng1000], [985])
 		vectors[story] = sm.data
 	return downsample_word_vectors(allstories, vectors, wordseqs)
 
