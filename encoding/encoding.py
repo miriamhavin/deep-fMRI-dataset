@@ -77,7 +77,7 @@ if __name__ == "__main__":
 	print("nboots: %d, chunklen: %d, nchunks: %d, single_alpha: %s, use_corr: %s" % (
 		nboots, chunklen, nchunks, single_alpha, use_corr))
 
-	corr = ridge_corr_pred(Rstim, Pstim, Rresp, Presp, alphas, normalpha=False,
+	corr = ridge_corr_pred(zRresp, delPstim, zRresp, zPresp, alphas, normalpha=False,
                     singcutoff=1e-10, use_corr=True, logger=ridge_logger)
 	print("Ridge correlation: ", corr)
 
