@@ -7,7 +7,6 @@ import json
 import pathlib
 from os.path import join, dirname
 import logging
-
 from encoding_utils import *
 from feature_spaces import _FEATURE_CONFIG, get_feature_space
 from ridge_utils.ridge import bootstrap_ridge, ridge_corr_pred, ridge_logger
