@@ -9,10 +9,9 @@ def csv_to_textgrid(data_dir, textgrid_dir):
     # List all CSV files in the directory
     for filename in os.listdir(data_dir):
         if filename.endswith(".csv"):
-            new_filename = filename.replace("week_", "wk_").replace("_lecture_", "_lec_").replace('.csv', '.TextGrid')
-            print(f"Converting {filename} to {new_filename}")
+            print(f"Converting {filename} to TextGrid")
             csv_file_path = join(data_dir, filename)
-            textgrid_file_path = join(textgrid_dir, new_filename)
+            textgrid_file_path = join(textgrid_dir, filename.replace('.csv', '.TextGrid'))
 
             with open(csv_file_path, newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
