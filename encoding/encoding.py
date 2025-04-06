@@ -76,12 +76,12 @@ if __name__ == "__main__":
 	print("Ridge parameters:")
 	print("nboots: %d, chunklen: %d, nchunks: %d, single_alpha: %s, use_corr: %s" % (
 		nboots, chunklen, nchunks, single_alpha, use_corr))
-
+	"""
 	corr = ridge_corr_pred(zRresp, delPstim, zRresp, zPresp, alphas, normalpha=False,
                     singcutoff=1e-10, use_corr=True, logger=ridge_logger)
 	print("Ridge correlation: ", corr)
-
 	"""
+	
 	wt, corrs, valphas, bscorrs, valinds = bootstrap_ridge(
 		delRstim, zRresp, delPstim, zPresp, alphas, nboots, chunklen, 
 		nchunks, singcutoff=singcutoff, single_alpha=single_alpha, 
@@ -94,4 +94,4 @@ if __name__ == "__main__":
 	np.savez("%s/bscorrs" % save_location, bscorrs)
 	np.savez("%s/valinds" % save_location, np.array(valinds))
 	print("Total r2: %d" % sum(corrs * np.abs(corrs)))
-	"""
+
