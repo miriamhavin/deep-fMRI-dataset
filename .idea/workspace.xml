@@ -28,7 +28,8 @@
     "WebServerToolWindowPanel.toolwindow.show.date": "false",
     "WebServerToolWindowPanel.toolwindow.show.permissions": "false",
     "WebServerToolWindowPanel.toolwindow.show.size": "false",
-    "nodejs_package_manager_path": "npm"
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.propVCSSupport.Mappings"
   }
 }]]></component>
   <component name="RunManager">
@@ -191,7 +192,7 @@
       <updated>1743424239684</updated>
       <workItem from="1743424243515" duration="2145000" />
       <workItem from="1743510499863" duration="8973000" />
-      <workItem from="1743669892883" duration="6117000" />
+      <workItem from="1743669892883" duration="6691000" />
     </task>
     <task id="LOCAL-00001" summary="and back eng1000">
       <created>1743582651300</created>
