@@ -130,7 +130,6 @@ def make_semantic_model(ds: DataSequence, lsasm, size, session):
             for i in range(len(ds.data), len(lsasm_words)):
                 f.write(f"{i}\t[MISSING]\t{str(lsasm_words[i]).lower()}\tNO\n")
 
-    print(f"Word comparison saved to 'word_comparison.txt'")
 
     # Check if dimensions align
     if len(ds.data) != lsasm.data.shape[0]:

@@ -6,10 +6,13 @@ import h5py
 from multiprocessing.pool import ThreadPool
 from os.path import join, dirname
 import nibabel as nib
-from ridge_utils.npp import zscore, mcorr
 from ridge_utils.utils import make_delayed
 from config import DATA_DIR
 import re
+from significance_testing import fdr_correct
+from ridge_utils.npp import zscore, mcorr
+from tqdm import tqdm
+import time
 
 def apply_zscore_and_hrf(stories, downsampled_feat, trim, ndelays):
 	"""Get (z-scored and delayed) stimulus for train and test stories.
@@ -92,6 +95,7 @@ def get_response(stories, subject):
 
 	return z_scored_data
 
+
 def flatten_data(data):
 	"""
     Reshape 4D fMRI data to 2D (time points × voxels) format for each session separately.
@@ -137,7 +141,7 @@ def permutation_test(true, pred, blocklen, nperms):
 	pvals = (real_rsqs <= perm_rsqs).mean(0)
 	return np.array(pvals), perm_rsqs, real_rsqs
 
-def run_permutation_test(zPresp, pred, blocklen, nperms, mode='', thres=0.001):
+def run_permutation_test(zPresp, pred, blocklen, nperms, save_location, mode='', thres=0.001):
 	assert zPresp.shape == pred.shape, print(zPresp.shape, pred.shape)
 
 	start_time = time.time()
@@ -145,7 +149,7 @@ def run_permutation_test(zPresp, pred, blocklen, nperms, mode='', thres=0.001):
 	partlen = nvox
 	pvals, perm_rsqs, real_rsqs = [[] for _ in range(3)]
 
-	for start in range(0, nvox, partlen):
+	for start in tqdm(range(0, nvox, partlen), desc='Running permutation tests'):
 		print(start, start+partlen)
 		pv, pr, rs = permutation_test(zPresp[:, start:start+partlen], pred[:, start:start+partlen],
 									  blocklen, nperms)
@@ -153,18 +157,20 @@ def run_permutation_test(zPresp, pred, blocklen, nperms, mode='', thres=0.001):
 		perm_rsqs.append(pr)
 		real_rsqs.append(rs)
 	pvals, perm_rsqs, real_rsqs = np.hstack(pvals), np.hstack(perm_rsqs), np.hstack(real_rsqs)
+	print(pvals)
 
 	assert pvals.shape[0] == nvox, (pvals.shape[0], nvox)
 	assert perm_rsqs.shape[0] == nperms, (perm_rsqs.shape[0], nperms)
 	assert perm_rsqs.shape[1] == nvox, (perm_rsqs.shape[1], nvox)
 	assert real_rsqs.shape[0] == nvox, (real_rsqs.shape[0], nvox)
 
-	cci.upload_raw_array(os.path.join(save_location, '%spvals'%mode), pvals)
-	cci.upload_raw_array(os.path.join(save_location, '%sperm_rsqs'%mode), perm_rsqs)
-	cci.upload_raw_array(os.path.join(save_location, '%sreal_rsqs'%mode), real_rsqs)
+	np.savez("%s/pvals" % save_location, pvals)
+	np.savez("%s/perm_rsqs" % save_location, perm_rsqs)
+	np.savez("%s/real_rsqs" % save_location, real_rsqs)
 	print((time.time() - start_time)/60)
 	
 	pID, pN = fdr_correct(pvals, thres)
-	cci.upload_raw_array(os.path.join(save_location, '%sgood_voxels'%mode), (pvals <= pN))
-	cci.upload_raw_array(os.path.join(save_location, '%spN_thres'%mode), np.array([pN, thres], dtype=np.float32))
+
+	np.savez("%s/good_voxels" % save_location, (pvals <= pN))
+	np.savez("%s/pN_thres" % save_location, np.array([pN, thres], dtype=np.float32))
 	return

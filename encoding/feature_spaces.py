@@ -154,11 +154,11 @@ def get_eng1000_vectors(allstories):
 	Returns:
 		Dictionary of {story: downsampled vectors}
 	"""
-	eng1000 = SemanticModel.load_eng1000(join(EM_DATA_DIR, "glove_embeddings.h5"))
+	eng1000 = SemanticModel.load_eng1000(join(EM_DATA_DIR, "glove_embeddings_2.h5"))
 	wordseqs = get_story_wordseqs(allstories)
 	vectors = {}
 	for story in allstories:
-		sm = make_semantic_model_eng1000(wordseqs[story], [eng1000], [985])
+		sm = make_semantic_model_eng1000(wordseqs[story], [eng1000], [300])
 		vectors[story] = sm.data
 	return downsample_word_vectors(allstories, vectors, wordseqs)
 

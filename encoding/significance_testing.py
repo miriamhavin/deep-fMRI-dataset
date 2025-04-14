@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.stats
 from ridge_utils.npp import mcorr
+from tqdm import tqdm
+import time
 
 def model_pvalue(wts, stim, resp, nboot=1e4, randinds=None):
     """Computes a bootstrap p-value by resampling the [wts] of the model, which
@@ -152,24 +154,42 @@ def correlation_pvalue(a, b, nboot=1e4, confinterval=0.95, method="pearson"):
 
 
 def permutation_test(true, pred, metric, blocklen=10, nperms=1000):
-    nblocks = int(true.shape[0] / blocklen)
+    # Calculate max number of complete blocks
+    n_samples = true.shape[0]
+    n_complete_blocks = n_samples // blocklen
 
-    block_true = np.dstack(np.vsplit(true, nblocks)).transpose((2,0,1))
-    block_pred = np.dstack(np.vsplit(pred, nblocks)).transpose((2,0,1))
-    
+    # Truncate data to fit complete blocks
+    usable_samples = n_complete_blocks * blocklen
+    true_trunc = true[:usable_samples]
+    pred_trunc = pred[:usable_samples]
+
+    print(f"Using {n_complete_blocks} blocks of length {blocklen} ({usable_samples} of {n_samples} samples)")
+
+    # Split into blocks
+    block_true = np.dstack(np.vsplit(true_trunc, n_complete_blocks)).transpose((2, 0, 1))
+    block_pred = np.dstack(np.vsplit(pred_trunc, n_complete_blocks)).transpose((2, 0, 1))
+
     # Select random blocks, compute metric for each
-    a_inds = make_randinds(nblocks, nperms)
-    b_inds = make_randinds(nblocks, nperms)
-    
+    a_inds = make_randinds(n_complete_blocks, nperms)
+    b_inds = make_randinds(n_complete_blocks, nperms)
+    start_time = time.time()
     from multiprocessing.pool import ThreadPool
     pool = ThreadPool(processes=8)
-    perm_rsqs = pool.map(lambda a: metric(np.vstack(block_true[a[0]]), np.vstack(block_pred[a[1]])), zip(a_inds.T, b_inds.T))
+    perm_rsqs = []
+    for i, (a, b) in enumerate(tqdm(zip(a_inds.T, b_inds.T), total=nperms,
+                                    desc="Running permutations")):
+        result = metric(np.vstack(block_true[a]), np.vstack(block_pred[b]))
+        perm_rsqs.append(result)
+    pool.close()
 
+    # Calculate metric on original full data (not truncated)
     real_rsqs = metric(true, pred)
-    
+
+    # Calculate p-values
     pvals = (real_rsqs <= perm_rsqs).mean(0)
-    
+
     return pvals, perm_rsqs, real_rsqs
+
 
 def fdr_qvalues(pvalues, lam=0.5):
     m = float(pvalues.size)
@@ -197,7 +217,7 @@ def fdr_correct(pval, thres):
    # remove NaNs
    p = pval[np.nonzero(np.isnan(pval)==False)[0]]
    p = np.sort(p)
-   V = np.float(len(p))
+   V = float(len(p))
    I = np.arange(V) + 1
 
    cVID = 1

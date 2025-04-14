@@ -15,7 +15,7 @@ def load_textgrids(stories, data_dir: str):
 
 
 class TRFile(object):
-    def __init__(self, trfilename, expectedtr=2.0045):
+    def __init__(self, trfilename, expectedtr=2.00):
         """Loads data from [trfilename], should be output from stimulus presentation code.
         """
         self.trtimes = []

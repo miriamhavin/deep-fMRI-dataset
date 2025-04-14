@@ -6,20 +6,22 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--subject", type=str, required=True)
 args = parser.parse_args()
 subject = args.subject
-file_path = f'/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/results/contextual/{subject}/'
+file_path = f'/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset-miriam/results/contextual/{subject}/random_split/'
 
 # Load each file
 bscorrs = np.load(file_path + 'bscorrs.npz')
 corrs = np.load(file_path + 'corrs.npz')
 valinds = np.load(file_path + 'valinds.npz')
 valphas = np.load(file_path + 'valphas.npz')
+pvals = np.load(file_path + 'pvals.npz')
 
 # Files and their arrays
 files = {
     'bscorrs': bscorrs,
     'corrs': corrs,
     'valinds': valinds,
-    'valphas': valphas
+    'valphas': valphas,
+    'pvals': pvals
 }
 
 # Examine all files and their contents
@@ -42,6 +44,7 @@ for file_name, file_data in files.items():
         # Get array statistics
         if array.size > 0:  # Only if array is not empty
             flat_array = array.flatten()
+            print(flat_array)
 
             # Count special values
             nan_count = np.isnan(flat_array).sum()

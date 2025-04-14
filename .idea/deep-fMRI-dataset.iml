@@ -2,12 +2,10 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Remote Python 3.11.2 (sftp://miriam1234@puffin-01.cs.huji.ac.il:22/sci/labs/arielgoldstein/miriam1234/FMRIvenv/bin/python) (2)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.11.2 (sftp://miriam1234@puffin-01.cs.huji.ac.il:22/sci/labs/arielgoldstein/miriam1234/embeddings/embeddingsvenv/bin/python) (3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">
-    <option name="format" value="PLAIN" />
-    <option name="myDocStringFormat" value="Plain" />
     <option name="renderExternalDocumentation" value="true" />
   </component>
 </module>

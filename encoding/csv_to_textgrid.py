@@ -56,7 +56,7 @@ def csv_to_textgrid(data_dir, textgrid_dir):
 
 
 # Example usage
-DATA_DIR = "/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset/encoding/data/"
+DATA_DIR = "/sci/labs/arielgoldstein/miriam1234/deep-fMRI-dataset-miriam/encoding/data/"
 TEXTGRID_DIR = join(DATA_DIR, "TextGrids")
 CSV_DIR = join(DATA_DIR, "CSV")
 csv_to_textgrid(CSV_DIR, TEXTGRID_DIR)
